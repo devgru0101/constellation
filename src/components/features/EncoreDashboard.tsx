@@ -5,17 +5,15 @@ import {
   Activity, 
   Globe, 
   Database, 
-  Zap, 
+ 
   Clock, 
   CheckCircle, 
   AlertTriangle,
   ExternalLink,
   Play,
   RefreshCw,
-  BarChart3,
   Network,
   Code,
-  BookOpen
 } from 'lucide-react'
 
 interface Service {
@@ -50,15 +48,14 @@ export const EncoreDashboard: React.FC = () => {
     const checkEncoreStatus = async () => {
       if (!state.currentProject) return;
       
-      const isEncoreProject = state.currentProject.type?.includes('encore') || 
-                             state.currentProject.type === 'microservices';
+      const isEncoreProject = state.currentProject.type?.includes('encore');
       
       if (!isEncoreProject) return;
 
       setIsCheckingStatus(true);
       try {
         // Check if Encore dev dashboard is accessible
-        const response = await fetch('http://localhost:9091', { 
+        await fetch('http://localhost:9091', { 
           method: 'HEAD',
           mode: 'no-cors'
         });

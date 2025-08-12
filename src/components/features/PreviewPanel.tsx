@@ -9,11 +9,8 @@ import {
   Monitor, 
   Play,
   Square,
-  Settings,
   Globe,
-  Database,
   Terminal,
-  Activity,
   CheckCircle,
   XCircle,
   Clock,
@@ -44,8 +41,7 @@ export const PreviewPanel: React.FC = () => {
   // Update URLs based on current project type
   useEffect(() => {
     if (state.currentProject) {
-      const isEncoreProject = state.currentProject.type?.includes('encore') || 
-                             state.currentProject.type === 'microservices';
+      const isEncoreProject = state.currentProject.type?.includes('encore');
       
       const updatedEnvs = environments.map(env => {
         if (env.type === 'development') {
@@ -85,14 +81,13 @@ export const PreviewPanel: React.FC = () => {
   // Initialize environments based on real project data
   useEffect(() => {
     const loadRealEnvironments = async () => {
-      const isEncoreProject = state.currentProject?.type?.includes('encore') || 
-                             state.currentProject?.type === 'microservices';
+      const isEncoreProject = state.currentProject?.type?.includes('encore');
       
       let realEnvs: PreviewEnvironment[] = []
       
       try {
         // Get current project info
-        const response = await fetch('http://localhost:8000/api/debug/projects')
+        await fetch('http://localhost:8000/api/debug/projects')
         const data = await response.json()
         
         if (data.projects && data.projects.length > 0 && state.currentProject) {
@@ -105,7 +100,7 @@ export const PreviewPanel: React.FC = () => {
             // Check if servers are actually running
             const checkServerStatus = async (port: number) => {
               try {
-                const response = await fetch(`http://localhost:${port}`, { 
+                await fetch(`http://localhost:${port}`, { 
                   method: 'HEAD',
                   mode: 'no-cors',
                   signal: AbortSignal.timeout(1000)
@@ -273,43 +268,6 @@ ${action === 'deploy' ? `🌐 Your application is now live at: ${env.url}` : ''}
         type: 'generation',
         agentId: 'master-orchestrator'
       })
-    }
-  }
-
-  const getDeviceSize = () => {
-    switch (device) {
-      case 'mobile':
-        return { width: '375px', height: '667px' }
-      case 'tablet':
-        return { width: '768px', height: '1024px' }
-      default:
-        return { width: '100%', height: '100%' }
-    }
-  }
-
-  const getStatusIcon = (status: PreviewEnvironment['status']) => {
-    switch (status) {
-      case 'running':
-        return <CheckCircle size={16} className="text-constellation-success" />
-      case 'stopped':
-        return <Square size={16} className="text-constellation-text-tertiary" />
-      case 'building':
-        return <Clock size={16} className="text-constellation-accent-yellow animate-pulse" />
-      case 'error':
-        return <XCircle size={16} className="text-constellation-error" />
-    }
-  }
-
-  const getStatusColor = (status: PreviewEnvironment['status']) => {
-    switch (status) {
-      case 'running':
-        return 'text-constellation-success'
-      case 'stopped':
-        return 'text-constellation-text-tertiary'
-      case 'building':
-        return 'text-constellation-accent-yellow'
-      case 'error':
-        return 'text-constellation-error'
     }
   }
 
@@ -897,7 +855,7 @@ const PreviewContent: React.FC<{ url: string }> = ({ url }) => {
     const checkProjectStatus = async () => {
       try {
         // First check if there are any projects
-        const response = await fetch('http://localhost:8000/api/debug/projects')
+        await fetch('http://localhost:8000/api/debug/projects')
         const data = await response.json()
         
         if (data.projects && data.projects.length > 0) {

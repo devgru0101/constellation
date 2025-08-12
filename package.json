@@ -11,7 +11,11 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:coverage": "vitest --coverage",
+    "clean": "rm -rf node_modules dist .vite package-lock.json && npm cache clean --force",
+    "fresh-install": "npm run clean && npm install",
+    "setup": "./quick-setup.sh"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",

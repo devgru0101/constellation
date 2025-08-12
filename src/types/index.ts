@@ -3,9 +3,9 @@
 export interface Project {
   id: string;
   name: string;
-  type: 'enterprise-saas' | 'consumer-app' | 'api-service' | 'data-platform';
+  type: 'enterprise-saas' | 'consumer-app' | 'api-service' | 'data-platform' | 'microservices' | 'encore-solidjs' | 'encore-react' | 'fullstack-ts';
   description: string;
-  status: 'active' | 'paused' | 'archived';
+  status: 'active' | 'paused' | 'archived' | 'running' | 'stopped' | 'building' | 'error' | 'ready' | 'creating';
   createdAt: Date;
   updatedAt: Date;
   knowledgeBase: KnowledgeBase;
@@ -27,6 +27,7 @@ export interface KnowledgeBase {
   services: ServiceDefinition[];
   requirements: string[];
   businessRules: string[];
+  techStack?: string;
 }
 
 export interface ServiceDefinition {

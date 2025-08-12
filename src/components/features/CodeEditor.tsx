@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useRef } from 'react'
 import { useSnapshot } from 'valtio'
 import { appStore, useAppStore } from '@/stores/app-store'
 import { Editor } from '@monaco-editor/react'
@@ -8,7 +8,7 @@ import { SandpackFileExplorer } from './sandpack'
 
 export const CodeEditor: React.FC = () => {
   const state = useSnapshot(appStore)
-  const { openTab, closeTab, updateTabContent, setCurrentSelection } = useAppStore()
+  const { closeTab, updateTabContent, setCurrentSelection } = useAppStore()
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
 
   // No demo files - clean start

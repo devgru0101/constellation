@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { useSnapshot } from 'valtio'
-import { appStore, useAppStore } from '@/stores/app-store'
+import { useAppStore } from '@/stores/app-store'
 import { 
   Play, 
   Square, 
@@ -10,7 +9,6 @@ import {
   Terminal,
   Eye,
   Download,
-  Upload,
   Activity,
   Clock,
   CheckCircle,
@@ -35,7 +33,6 @@ interface Container {
 }
 
 export const ContainerManager: React.FC = () => {
-  const state = useSnapshot(appStore)
   const { addChatMessage } = useAppStore()
   const [containers, setContainers] = useState<Container[]>([])
   const [selectedContainer, setSelectedContainer] = useState<string | null>(null)
