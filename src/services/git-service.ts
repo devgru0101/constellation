@@ -567,6 +567,66 @@ class GitService {
   }
 
   /**
+   * Check GitHub API rate limits and token permissions
+   */
+  async checkGitHubTokenPermissions(): Promise<{
+    valid: boolean;
+    rateLimit: {
+      limit: number;
+      remaining: number;
+      reset: Date;
+    };
+    permissions: string[];
+  }> {
+    if (!this.githubAuth) {
+      throw new Error('Not connected to GitHub');
+    }
+
+    try {
+      console.log('🔍 Checking GitHub token permissions and rate limits...');
+      
+      const response = await fetch('https://api.github.com/user', {
+        headers: {
+          'Authorization': `token ${this.githubAuth.token}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+
+      const rateLimit = {
+        limit: parseInt(response.headers.get('x-ratelimit-limit') || '0'),
+        remaining: parseInt(response.headers.get('x-ratelimit-remaining') || '0'),
+        reset: new Date(parseInt(response.headers.get('x-ratelimit-reset') || '0') * 1000)
+      };
+
+      console.log('📊 Rate limit status:', rateLimit);
+
+      if (!response.ok) {
+        console.error('❌ Token validation failed:', response.status, response.statusText);
+        return {
+          valid: false,
+          rateLimit,
+          permissions: []
+        };
+      }
+
+      // Check token scopes
+      const scopes = response.headers.get('x-oauth-scopes') || '';
+      const permissions = scopes.split(',').map(s => s.trim()).filter(s => s);
+      
+      console.log('🔐 Token scopes:', permissions);
+
+      return {
+        valid: true,
+        rateLimit,
+        permissions
+      };
+    } catch (error) {
+      console.error('💥 Error checking token permissions:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get user's GitHub repositories
    */
   async getGitHubRepositories(): Promise<GitHubRepository[]> {
@@ -631,12 +691,52 @@ class GitService {
     projectId: string;
     files: { [path: string]: string };
   }> {
+    console.log('🔄 Starting clone for repository:', githubRepo.fullName);
+    
     if (!this.githubAuth) {
+      console.error('❌ Not connected to GitHub');
       throw new Error('Not connected to GitHub');
     }
 
     try {
+      // Check token permissions and rate limits first
+      const tokenCheck = await this.checkGitHubTokenPermissions();
+      
+      if (!tokenCheck.valid) {
+        throw new Error('GitHub token is invalid or expired');
+      }
+      
+      if (tokenCheck.rateLimit.remaining < 10) {
+        throw new Error(`GitHub API rate limit nearly exceeded. Remaining: ${tokenCheck.rateLimit.remaining}`);
+      }
+      
+      if (!tokenCheck.permissions.includes('repo') && !tokenCheck.permissions.includes('public_repo')) {
+        console.warn('⚠️ Token may not have required repo permissions:', tokenCheck.permissions);
+      }
+      
+      console.log('🔍 Checking repository access...');
+      
+      // First, check if we can access the repository
+      const repoResponse = await fetch(
+        `https://api.github.com/repos/${githubRepo.fullName}`,
+        {
+          headers: {
+            'Authorization': `token ${this.githubAuth.token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        }
+      );
+
+      if (!repoResponse.ok) {
+        const errorText = await repoResponse.text();
+        console.error('❌ Repository access failed:', repoResponse.status, errorText);
+        throw new Error(`Cannot access repository: ${repoResponse.status} ${repoResponse.statusText}`);
+      }
+
+      console.log('✅ Repository access confirmed');
+
       // Get repository contents from GitHub API
+      console.log('📁 Fetching repository contents...');
       const response = await fetch(
         `https://api.github.com/repos/${githubRepo.fullName}/contents`,
         {
@@ -648,24 +748,36 @@ class GitService {
       );
 
       if (!response.ok) {
-        throw new Error('Failed to fetch repository contents');
+        const errorText = await response.text();
+        console.error('❌ Contents fetch failed:', response.status, errorText);
+        throw new Error(`Failed to fetch repository contents: ${response.status} ${response.statusText}`);
       }
 
       const contents = await response.json();
+      console.log('📄 Found', contents.length, 'items in repository root');
+      
       const files: { [path: string]: string } = {};
       
       // Recursively fetch all files
+      console.log('⬇️ Starting file download...');
       await this.fetchRepositoryFiles(githubRepo.fullName, '', files);
+      
+      console.log('📦 Downloaded', Object.keys(files).length, 'files');
 
       // Generate project ID based on repository name
       const projectId = `cloned-${githubRepo.name}-${Date.now()}`;
+      console.log('🆔 Generated project ID:', projectId);
 
       // Initialize git repository for the cloned project
+      console.log('🔧 Initializing git repository...');
       await this.initializeRepository(projectId, files);
       
       // Link to the GitHub repository
+      console.log('🔗 Linking to GitHub repository...');
       await this.linkToGitHubRepository(projectId, githubRepo);
 
+      console.log('✅ Clone completed successfully!');
+      
       loggers.git('repository_cloned', {
         projectId,
         repositoryName: githubRepo.fullName,
@@ -674,6 +786,7 @@ class GitService {
 
       return { projectId, files };
     } catch (error) {
+      console.error('💥 Clone failed:', error);
       loggers.error('repository_clone_failed', error as Error, {
         repositoryName: githubRepo.fullName
       });
@@ -688,14 +801,17 @@ class GitService {
     repoFullName: string,
     path: string,
     files: { [path: string]: string },
-    maxFiles: number = 100
+    maxFiles: number = 50
   ): Promise<void> {
     if (Object.keys(files).length >= maxFiles) {
+      console.log(`📊 Reached maximum file limit (${maxFiles}), stopping fetch`);
       return; // Prevent fetching too many files
     }
 
     try {
       const url = `https://api.github.com/repos/${repoFullName}/contents${path ? `/${path}` : ''}`;
+      console.log(`📁 Fetching contents for path: ${path || 'root'}`);
+      
       const response = await fetch(url, {
         headers: {
           'Authorization': `token ${this.githubAuth!.token}`,
@@ -703,29 +819,45 @@ class GitService {
         }
       });
 
-      if (!response.ok) return;
+      if (!response.ok) {
+        console.warn(`⚠️ Failed to fetch contents for ${path}: ${response.status} ${response.statusText}`);
+        return;
+      }
 
       const contents = await response.json();
+      console.log(`📋 Found ${contents.length} items in ${path || 'root'}`);
       
       for (const item of contents) {
-        if (item.type === 'file' && item.size <= 1024 * 1024) { // Max 1MB per file
+        if (Object.keys(files).length >= maxFiles) {
+          console.log(`📊 Reached maximum file limit during processing, stopping`);
+          break;
+        }
+
+        if (item.type === 'file' && item.size <= 512 * 1024) { // Max 512KB per file (reduced for safety)
           try {
+            console.log(`📄 Downloading file: ${item.path} (${item.size} bytes)`);
             // Fetch file content
             const fileResponse = await fetch(item.download_url);
             if (fileResponse.ok) {
               const content = await fileResponse.text();
               files[item.path] = content;
+              console.log(`✅ Downloaded: ${item.path}`);
+            } else {
+              console.warn(`⚠️ Failed to download file ${item.path}: ${fileResponse.status}`);
             }
           } catch (error) {
-            console.warn(`Failed to fetch file ${item.path}:`, error);
+            console.warn(`❌ Error downloading file ${item.path}:`, error);
           }
+        } else if (item.type === 'file' && item.size > 512 * 1024) {
+          console.log(`⏭️ Skipping large file: ${item.path} (${item.size} bytes)`);
         } else if (item.type === 'dir') {
+          console.log(`📂 Entering directory: ${item.path}`);
           // Recursively fetch directory contents
           await this.fetchRepositoryFiles(repoFullName, item.path, files, maxFiles);
         }
       }
     } catch (error) {
-      console.warn(`Failed to fetch contents for path ${path}:`, error);
+      console.error(`💥 Error fetching contents for path ${path}:`, error);
     }
   }
 

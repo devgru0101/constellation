@@ -207,9 +207,14 @@ export const GitIntegrationPanel: React.FC<GitIntegrationPanelProps> = ({
   };
 
   const handleCloneRepository = async (githubRepo: GitHubRepository) => {
+    console.log('🚀 UI: Starting clone process for', githubRepo.name);
     setIsCloning(true);
+    
     try {
+      console.log('⏳ UI: Calling git service to clone repository...');
       const { projectId, files } = await gitService.cloneGitHubRepository(githubRepo);
+      
+      console.log('📋 UI: Clone completed, creating project with', Object.keys(files).length, 'files');
       
       // Create a new project in the app store
       const newProject = {
@@ -232,11 +237,13 @@ export const GitIntegrationPanel: React.FC<GitIntegrationPanelProps> = ({
         }
       };
 
+      console.log('🏪 UI: Adding project to app store...');
       // Add to app store
       appStore.projects.push(newProject);
       appStore.currentProject = newProject;
       appStore.projectFiles = files;
       
+      console.log('🔧 UI: Updating git state...');
       // Update git state
       setGitState(prev => ({ 
         ...prev, 
@@ -244,20 +251,30 @@ export const GitIntegrationPanel: React.FC<GitIntegrationPanelProps> = ({
         isConnected: true 
       }));
 
+      console.log('🚪 UI: Closing modals...');
       // Close modals
       setShowRepositoryBrowser(false);
       setShowRepositoryListModal(false);
 
+      console.log('🌳 UI: Refreshing file tree...');
       // Refresh file tree
       const refreshEvent = new CustomEvent('refresh-file-tree', {
         detail: { projectId }
       });
       window.dispatchEvent(refreshEvent);
 
-      alert(`Successfully cloned ${githubRepo.name}!`);
+      console.log('✅ UI: Clone process completed successfully!');
+      alert(`Successfully cloned ${githubRepo.name}! Check the browser console for details.`);
     } catch (error) {
-      console.error('Failed to clone repository:', error);
-      alert(`Failed to clone repository: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('💥 UI: Clone failed with error:', error);
+      
+      // Show detailed error information
+      let errorMessage = 'Unknown error occurred';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      alert(`Failed to clone repository: ${errorMessage}\n\nPlease check the browser console (F12) for more details.`);
     } finally {
       setIsCloning(false);
     }
