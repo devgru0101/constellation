@@ -818,40 +818,64 @@ class GitService {
       console.log('🔍 Checking specific repository access...');
       
       // First, check if we can access the repository
-      const repoResponse = await fetch(
-        `https://api.github.com/repos/${githubRepo.fullName}`,
-        {
-          headers: {
-            'Authorization': `token ${this.githubAuth.token}`,
-            'Accept': 'application/vnd.github.v3+json'
-          }
+      const repoUrl = `https://api.github.com/repos/${githubRepo.fullName}`;
+      console.log('🔗 Testing repository access URL:', repoUrl);
+      
+      const repoResponse = await fetch(repoUrl, {
+        headers: {
+          'Authorization': `token ${this.githubAuth.token}`,
+          'Accept': 'application/vnd.github.v3+json'
         }
-      );
+      });
+
+      console.log('📡 Repository access response:', {
+        url: repoUrl,
+        status: repoResponse.status,
+        statusText: repoResponse.statusText,
+        headers: Object.fromEntries(repoResponse.headers.entries())
+      });
 
       if (!repoResponse.ok) {
         const errorText = await repoResponse.text();
-        console.error('❌ Repository access failed:', repoResponse.status, errorText);
-        throw new Error(`Cannot access repository: ${repoResponse.status} ${repoResponse.statusText}`);
+        console.error('❌ Repository access failed:', {
+          url: repoUrl,
+          status: repoResponse.status,
+          statusText: repoResponse.statusText,
+          error: errorText
+        });
+        throw new Error(`Cannot access repository ${githubRepo.fullName}: ${repoResponse.status} ${repoResponse.statusText} - ${errorText}`);
       }
 
       console.log('✅ Repository access confirmed');
 
       // Get repository contents from GitHub API
       console.log('📁 Fetching repository contents...');
-      const response = await fetch(
-        `https://api.github.com/repos/${githubRepo.fullName}/contents`,
-        {
-          headers: {
-            'Authorization': `token ${this.githubAuth.token}`,
-            'Accept': 'application/vnd.github.v3+json'
-          }
+      const contentsUrl = `https://api.github.com/repos/${githubRepo.fullName}/contents`;
+      console.log('🔗 Contents URL:', contentsUrl);
+      
+      const response = await fetch(contentsUrl, {
+        headers: {
+          'Authorization': `token ${this.githubAuth.token}`,
+          'Accept': 'application/vnd.github.v3+json'
         }
-      );
+      });
+
+      console.log('📡 Contents response:', {
+        url: contentsUrl,
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('❌ Contents fetch failed:', response.status, errorText);
-        throw new Error(`Failed to fetch repository contents: ${response.status} ${response.statusText}`);
+        console.error('❌ Contents fetch failed:', {
+          url: contentsUrl,
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText
+        });
+        throw new Error(`Failed to fetch repository contents for ${githubRepo.fullName}: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const contents = await response.json();
@@ -912,6 +936,7 @@ class GitService {
     try {
       const url = `https://api.github.com/repos/${repoFullName}/contents${path ? `/${path}` : ''}`;
       console.log(`📁 Fetching contents for path: ${path || 'root'}`);
+      console.log(`🔗 API URL: ${url}`);
       
       const response = await fetch(url, {
         headers: {
@@ -920,8 +945,20 @@ class GitService {
         }
       });
 
+      console.log(`📡 Response for ${path || 'root'}:`, {
+        url,
+        status: response.status,
+        statusText: response.statusText
+      });
+
       if (!response.ok) {
-        console.warn(`⚠️ Failed to fetch contents for ${path}: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        console.warn(`⚠️ Failed to fetch contents for ${path}:`, {
+          url,
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText
+        });
         return;
       }
 
@@ -937,17 +974,32 @@ class GitService {
         if (item.type === 'file' && item.size <= 512 * 1024) { // Max 512KB per file (reduced for safety)
           try {
             console.log(`📄 Downloading file: ${item.path} (${item.size} bytes)`);
+            console.log(`🔗 Download URL: ${item.download_url}`);
+            
             // Fetch file content
             const fileResponse = await fetch(item.download_url);
+            
+            console.log(`📡 File download response for ${item.path}:`, {
+              url: item.download_url,
+              status: fileResponse.status,
+              statusText: fileResponse.statusText
+            });
+            
             if (fileResponse.ok) {
               const content = await fileResponse.text();
               files[item.path] = content;
-              console.log(`✅ Downloaded: ${item.path}`);
+              console.log(`✅ Downloaded: ${item.path} (${content.length} chars)`);
             } else {
-              console.warn(`⚠️ Failed to download file ${item.path}: ${fileResponse.status}`);
+              const errorText = await fileResponse.text();
+              console.warn(`⚠️ Failed to download file ${item.path}:`, {
+                url: item.download_url,
+                status: fileResponse.status,
+                statusText: fileResponse.statusText,
+                error: errorText
+              });
             }
           } catch (error) {
-            console.warn(`❌ Error downloading file ${item.path}:`, error);
+            console.error(`❌ Error downloading file ${item.path}:`, error);
           }
         } else if (item.type === 'file' && item.size > 512 * 1024) {
           console.log(`⏭️ Skipping large file: ${item.path} (${item.size} bytes)`);
