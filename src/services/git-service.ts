@@ -567,6 +567,91 @@ class GitService {
   }
 
   /**
+   * Diagnose GitHub token and API access issues
+   */
+  async diagnoseGitHubAccess(): Promise<{
+    tokenValid: boolean;
+    userInfo: any;
+    rateLimit: any;
+    scopes: string[];
+    canAccessRepos: boolean;
+    testRepoAccess?: any;
+  }> {
+    console.log('🔧 Diagnosing GitHub API access...');
+    
+    if (!this.githubAuth) {
+      throw new Error('Not connected to GitHub');
+    }
+
+    const result = {
+      tokenValid: false,
+      userInfo: null,
+      rateLimit: null,
+      scopes: [],
+      canAccessRepos: false,
+      testRepoAccess: null
+    };
+
+    try {
+      // 1. Test basic token validity
+      console.log('1️⃣ Testing token validity...');
+      const userResponse = await fetch('https://api.github.com/user', {
+        headers: {
+          'Authorization': `token ${this.githubAuth.token}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+
+      result.tokenValid = userResponse.ok;
+      result.userInfo = userResponse.ok ? await userResponse.json() : null;
+      result.rateLimit = {
+        limit: parseInt(userResponse.headers.get('x-ratelimit-limit') || '0'),
+        remaining: parseInt(userResponse.headers.get('x-ratelimit-remaining') || '0'),
+        reset: new Date(parseInt(userResponse.headers.get('x-ratelimit-reset') || '0') * 1000)
+      };
+      result.scopes = (userResponse.headers.get('x-oauth-scopes') || '').split(',').map(s => s.trim()).filter(s => s);
+
+      console.log('✅ User info:', result.userInfo?.login);
+      console.log('📊 Rate limit:', result.rateLimit);
+      console.log('🔐 Token scopes:', result.scopes);
+
+      // 2. Test repository access
+      if (result.tokenValid) {
+        console.log('2️⃣ Testing repository access...');
+        const reposResponse = await fetch('https://api.github.com/user/repos?per_page=1', {
+          headers: {
+            'Authorization': `token ${this.githubAuth.token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        result.canAccessRepos = reposResponse.ok;
+        if (reposResponse.ok) {
+          const repos = await reposResponse.json();
+          result.testRepoAccess = { 
+            status: reposResponse.status, 
+            count: repos.length,
+            firstRepo: repos[0]?.full_name || 'none'
+          };
+          console.log('✅ Can access repositories:', result.testRepoAccess);
+        } else {
+          result.testRepoAccess = { 
+            status: reposResponse.status, 
+            error: await reposResponse.text() 
+          };
+          console.log('❌ Cannot access repositories:', result.testRepoAccess);
+        }
+      }
+
+    } catch (error) {
+      console.error('💥 GitHub diagnostic failed:', error);
+      throw error;
+    }
+
+    return result;
+  }
+
+  /**
    * Check GitHub API rate limits and token permissions
    */
   async checkGitHubTokenPermissions(): Promise<{
@@ -714,22 +799,23 @@ class GitService {
     }
 
     try {
-      // Check token permissions and rate limits first
-      const tokenCheck = await this.checkGitHubTokenPermissions();
+      // Run comprehensive diagnostics first
+      console.log('🔧 Running GitHub API diagnostics...');
+      const diagnostic = await this.diagnoseGitHubAccess();
       
-      if (!tokenCheck.valid) {
-        throw new Error('GitHub token is invalid or expired');
+      if (!diagnostic.tokenValid) {
+        throw new Error(`GitHub token is invalid. Status: ${diagnostic.testRepoAccess?.status || 'unknown'}`);
       }
       
-      if (tokenCheck.rateLimit.remaining < 10) {
-        throw new Error(`GitHub API rate limit nearly exceeded. Remaining: ${tokenCheck.rateLimit.remaining}`);
+      if (!diagnostic.canAccessRepos) {
+        throw new Error(`Cannot access GitHub repositories. Status: ${diagnostic.testRepoAccess?.status}, Error: ${diagnostic.testRepoAccess?.error || 'unknown'}`);
       }
       
-      if (!tokenCheck.permissions.includes('repo') && !tokenCheck.permissions.includes('public_repo')) {
-        console.warn('⚠️ Token may not have required repo permissions:', tokenCheck.permissions);
+      if (diagnostic.rateLimit.remaining < 10) {
+        throw new Error(`GitHub API rate limit nearly exceeded. Remaining: ${diagnostic.rateLimit.remaining}`);
       }
       
-      console.log('🔍 Checking repository access...');
+      console.log('🔍 Checking specific repository access...');
       
       // First, check if we can access the repository
       const repoResponse = await fetch(

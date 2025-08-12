@@ -839,22 +839,36 @@ export const GitIntegrationPanel: React.FC<GitIntegrationPanelProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
-                    console.log('🔍 Debug: Current repository state:', {
-                      totalRepos: gitState.githubRepositories.length,
-                      isCloning,
-                      searchQuery,
-                      repositories: gitState.githubRepositories.map(r => ({ 
-                        name: r.name, 
-                        id: r.id, 
-                        fullName: r.fullName 
-                      }))
-                    });
-                    alert(`Debug info logged to console. Total repositories: ${gitState.githubRepositories.length}`);
+                  onClick={async () => {
+                    try {
+                      setLoading(true);
+                      console.log('🔧 Running GitHub diagnostics...');
+                      const diagnostic = await (gitService as any).diagnoseGitHubAccess();
+                      console.log('🔍 GitHub Diagnostic Results:', diagnostic);
+                      
+                      const summary = `
+GitHub Token Diagnostics:
+✅ Token Valid: ${diagnostic.tokenValid}
+✅ Can Access Repos: ${diagnostic.canAccessRepos}
+📊 Rate Limit: ${diagnostic.rateLimit.remaining}/${diagnostic.rateLimit.limit}
+🔐 Scopes: ${diagnostic.scopes.join(', ') || 'none'}
+👤 User: ${diagnostic.userInfo?.login || 'unknown'}
+📦 Repo Test: ${diagnostic.testRepoAccess?.status || 'N/A'}
+
+Check console for full details.`;
+                      
+                      alert(summary);
+                    } catch (error) {
+                      console.error('Diagnostic failed:', error);
+                      alert(`Diagnostic failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    } finally {
+                      setLoading(false);
+                    }
                   }}
-                  className="px-2 py-1 text-xs bg-constellation-bg-tertiary border border-constellation-border rounded hover:bg-constellation-bg-secondary"
+                  disabled={!gitState.isConnected || loading}
+                  className="px-2 py-1 text-xs bg-constellation-bg-tertiary border border-constellation-border rounded hover:bg-constellation-bg-secondary disabled:opacity-50"
                 >
-                  Debug
+                  {loading ? 'Testing...' : 'Test GitHub'}
                 </button>
                 <button
                   onClick={() => setShowRepositoryBrowser(false)}
