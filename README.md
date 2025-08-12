@@ -49,10 +49,10 @@ Use our installation script for the easiest setup:
 
 ```bash
 # Download and run the installation script
-curl -fsSL https://raw.githubusercontent.com/devgru0101/constellation/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/devgru0101/constellation/master/install.sh | bash
 
 # Or download first and inspect:
-wget https://raw.githubusercontent.com/devgru0101/constellation/main/install.sh
+wget https://raw.githubusercontent.com/devgru0101/constellation/master/install.sh
 chmod +x install.sh
 ./install.sh
 ```
