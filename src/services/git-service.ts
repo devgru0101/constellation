@@ -625,6 +625,144 @@ class GitService {
   }
 
   /**
+   * Clone a GitHub repository and create a new project
+   */
+  async cloneGitHubRepository(githubRepo: GitHubRepository): Promise<{
+    projectId: string;
+    files: { [path: string]: string };
+  }> {
+    if (!this.githubAuth) {
+      throw new Error('Not connected to GitHub');
+    }
+
+    try {
+      // Get repository contents from GitHub API
+      const response = await fetch(
+        `https://api.github.com/repos/${githubRepo.fullName}/contents`,
+        {
+          headers: {
+            'Authorization': `token ${this.githubAuth.token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch repository contents');
+      }
+
+      const contents = await response.json();
+      const files: { [path: string]: string } = {};
+      
+      // Recursively fetch all files
+      await this.fetchRepositoryFiles(githubRepo.fullName, '', files);
+
+      // Generate project ID based on repository name
+      const projectId = `cloned-${githubRepo.name}-${Date.now()}`;
+
+      // Initialize git repository for the cloned project
+      await this.initializeRepository(projectId, files);
+      
+      // Link to the GitHub repository
+      await this.linkToGitHubRepository(projectId, githubRepo);
+
+      loggers.git('repository_cloned', {
+        projectId,
+        repositoryName: githubRepo.fullName,
+        fileCount: Object.keys(files).length
+      });
+
+      return { projectId, files };
+    } catch (error) {
+      loggers.error('repository_clone_failed', error as Error, {
+        repositoryName: githubRepo.fullName
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Recursively fetch all files from a GitHub repository
+   */
+  private async fetchRepositoryFiles(
+    repoFullName: string,
+    path: string,
+    files: { [path: string]: string },
+    maxFiles: number = 100
+  ): Promise<void> {
+    if (Object.keys(files).length >= maxFiles) {
+      return; // Prevent fetching too many files
+    }
+
+    try {
+      const url = `https://api.github.com/repos/${repoFullName}/contents${path ? `/${path}` : ''}`;
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `token ${this.githubAuth!.token}`,
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      });
+
+      if (!response.ok) return;
+
+      const contents = await response.json();
+      
+      for (const item of contents) {
+        if (item.type === 'file' && item.size <= 1024 * 1024) { // Max 1MB per file
+          try {
+            // Fetch file content
+            const fileResponse = await fetch(item.download_url);
+            if (fileResponse.ok) {
+              const content = await fileResponse.text();
+              files[item.path] = content;
+            }
+          } catch (error) {
+            console.warn(`Failed to fetch file ${item.path}:`, error);
+          }
+        } else if (item.type === 'dir') {
+          // Recursively fetch directory contents
+          await this.fetchRepositoryFiles(repoFullName, item.path, files, maxFiles);
+        }
+      }
+    } catch (error) {
+      console.warn(`Failed to fetch contents for path ${path}:`, error);
+    }
+  }
+
+  /**
+   * Get repository branches from GitHub
+   */
+  async getGitHubRepositoryBranches(githubRepo: GitHubRepository): Promise<string[]> {
+    if (!this.githubAuth) {
+      throw new Error('Not connected to GitHub');
+    }
+
+    try {
+      const response = await fetch(
+        `https://api.github.com/repos/${githubRepo.fullName}/branches`,
+        {
+          headers: {
+            'Authorization': `token ${this.githubAuth.token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch repository branches');
+      }
+
+      const branches = await response.json();
+      return branches.map((branch: any) => branch.name);
+    } catch (error) {
+      loggers.error('github_branches_fetch_failed', error as Error, {
+        repositoryName: githubRepo.fullName
+      });
+      return ['main']; // Return default branch
+    }
+  }
+
+  /**
    * Push commits to GitHub repository
    */
   async pushToGitHub(projectId: string): Promise<void> {

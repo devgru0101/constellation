@@ -51,6 +51,7 @@ export const GitIntegrationPanel: React.FC<GitIntegrationPanelProps> = ({
   const [showConnectModal, setShowConnectModal] = useState(false);
   const [showCreateRepoModal, setShowCreateRepoModal] = useState(false);
   const [showRepositoryListModal, setShowRepositoryListModal] = useState(false);
+  const [showRepositoryBrowser, setShowRepositoryBrowser] = useState(false);
   const [githubToken, setGithubToken] = useState('');
   const [newBranchName, setNewBranchName] = useState('');
   const [newRepoName, setNewRepoName] = useState('');
@@ -59,6 +60,8 @@ export const GitIntegrationPanel: React.FC<GitIntegrationPanelProps> = ({
   const [loading, setLoading] = useState(false);
   const [showDiffViewer, setShowDiffViewer] = useState(false);
   const [selectedCommit, setSelectedCommit] = useState<GitServiceCommit | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isCloning, setIsCloning] = useState(false);
 
   // Load GitHub auth status on mount
   useEffect(() => {
@@ -200,6 +203,63 @@ export const GitIntegrationPanel: React.FC<GitIntegrationPanelProps> = ({
     } catch (error) {
       console.error('Failed to link repository:', error);
       alert('Failed to link repository');
+    }
+  };
+
+  const handleCloneRepository = async (githubRepo: GitHubRepository) => {
+    setIsCloning(true);
+    try {
+      const { projectId, files } = await gitService.cloneGitHubRepository(githubRepo);
+      
+      // Create a new project in the app store
+      const newProject = {
+        id: projectId,
+        name: githubRepo.name,
+        description: githubRepo.description || `Cloned from ${githubRepo.fullName}`,
+        type: 'fullstack-ts' as const,
+        status: 'ready' as const,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        knowledgeBase: {
+          id: `kb-${projectId}`,
+          projectId,
+          auth: { type: 'none' as const },
+          database: { type: 'postgresql' as const, features: [] },
+          integrations: [],
+          services: [],
+          requirements: [],
+          businessRules: []
+        }
+      };
+
+      // Add to app store
+      appStore.projects.push(newProject);
+      appStore.currentProject = newProject;
+      appStore.projectFiles = files;
+      
+      // Update git state
+      setGitState(prev => ({ 
+        ...prev, 
+        githubRepository: githubRepo,
+        isConnected: true 
+      }));
+
+      // Close modals
+      setShowRepositoryBrowser(false);
+      setShowRepositoryListModal(false);
+
+      // Refresh file tree
+      const refreshEvent = new CustomEvent('refresh-file-tree', {
+        detail: { projectId }
+      });
+      window.dispatchEvent(refreshEvent);
+
+      alert(`Successfully cloned ${githubRepo.name}!`);
+    } catch (error) {
+      console.error('Failed to clone repository:', error);
+      alert(`Failed to clone repository: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsCloning(false);
     }
   };
 
@@ -374,6 +434,14 @@ export const GitIntegrationPanel: React.FC<GitIntegrationPanelProps> = ({
                 Repository
               </h3>
               <div className="space-y-2">
+                <button 
+                  onClick={() => setShowRepositoryBrowser(true)}
+                  disabled={!gitState.isConnected}
+                  className="flex items-center gap-2 w-full p-2 text-left hover:bg-constellation-bg-secondary rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Github className="w-4 h-4" />
+                  Browse & Clone Repositories
+                </button>
                 <button 
                   onClick={() => setShowCreateRepoModal(true)}
                   disabled={!gitState.isConnected}
@@ -696,6 +764,144 @@ export const GitIntegrationPanel: React.FC<GitIntegrationPanelProps> = ({
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Repository Browser Modal */}
+      {showRepositoryBrowser && (
+        <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+          <div className="bg-constellation-bg-primary border border-constellation-border rounded-lg w-[700px] max-h-[700px] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-constellation-border">
+              <h3 className="text-lg font-semibold text-constellation-text-primary">
+                Browse GitHub Repositories
+              </h3>
+              <button
+                onClick={() => setShowRepositoryBrowser(false)}
+                className="p-1 hover:bg-constellation-bg-secondary rounded"
+              >
+                <X className="w-5 h-5 text-constellation-text-secondary" />
+              </button>
+            </div>
+            
+            {/* Search Bar */}
+            <div className="p-4 border-b border-constellation-border">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search repositories..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-3 pr-10 py-2 bg-constellation-bg-secondary border border-constellation-border rounded text-sm text-constellation-text-primary placeholder-constellation-text-tertiary focus:outline-none focus:border-constellation-accent-blue"
+                />
+                <button
+                  onClick={async () => {
+                    if (!gitState.isConnected) return;
+                    setLoading(true);
+                    try {
+                      const repositories = await gitService.getGitHubRepositories();
+                      setGitState(prev => ({ ...prev, githubRepositories: repositories }));
+                    } catch (error) {
+                      console.error('Failed to refresh repositories:', error);
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-constellation-bg-tertiary rounded"
+                >
+                  <RefreshCw className={`w-4 h-4 text-constellation-text-tertiary ${loading ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+            </div>
+            
+            {/* Repository List */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <RefreshCw className="w-6 h-6 animate-spin text-constellation-accent-blue" />
+                  <span className="ml-2 text-constellation-text-secondary">Loading repositories...</span>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {gitState.githubRepositories
+                    .filter(repo => 
+                      searchQuery === '' || 
+                      repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      repo.description.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .map(repo => (
+                      <div
+                        key={repo.id}
+                        className="border border-constellation-border rounded-lg p-4 hover:bg-constellation-bg-secondary transition-colors"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-medium text-constellation-text-primary truncate">
+                                {repo.name}
+                              </h4>
+                              {repo.private && (
+                                <span className="text-xs bg-yellow-500 bg-opacity-20 text-yellow-400 px-2 py-0.5 rounded">
+                                  Private
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-constellation-text-secondary mb-1">
+                              {repo.fullName}
+                            </div>
+                            {repo.description && (
+                              <p className="text-sm text-constellation-text-tertiary line-clamp-2">
+                                {repo.description}
+                              </p>
+                            )}
+                          </div>
+                          <a
+                            href={repo.htmlUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-3 p-1 hover:bg-constellation-bg-tertiary rounded"
+                          >
+                            <ExternalLink className="w-4 h-4 text-constellation-text-tertiary" />
+                          </a>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleCloneRepository(repo)}
+                            disabled={isCloning}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-constellation-accent-blue text-white rounded text-sm hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isCloning ? (
+                              <RefreshCw className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Plus className="w-3 h-3" />
+                            )}
+                            {isCloning ? 'Cloning...' : 'Clone & Create Project'}
+                          </button>
+                          
+                          {state.currentProject && (
+                            <button
+                              onClick={() => handleLinkRepository(repo)}
+                              className="flex items-center gap-2 px-3 py-1.5 bg-constellation-bg-tertiary border border-constellation-border rounded text-sm hover:bg-constellation-bg-secondary"
+                            >
+                              <GitMerge className="w-3 h-3" />
+                              Link to Current
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    
+                  {gitState.githubRepositories.length === 0 && !loading && (
+                    <div className="text-center py-8 text-constellation-text-secondary">
+                      <Github className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p className="text-sm">No repositories found</p>
+                      <p className="text-xs mt-1">Make sure you're connected to GitHub</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
