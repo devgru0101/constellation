@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSnapshot } from 'valtio';
 import { appStore } from '@/stores/app-store';
 import { gitService, type GitCommit as GitServiceCommit, type GitHubRepository } from '@/services/git-service';
+import { loggers } from '@/services/logging-system';
 import { CommitDiffViewer } from './CommitDiffViewer';
 import { 
   GitBranch, 
@@ -206,15 +207,48 @@ export const GitIntegrationPanel: React.FC<GitIntegrationPanelProps> = ({
     }
   };
 
-  const handleCloneRepository = async (githubRepo: GitHubRepository) => {
-    console.log('🚀 UI: Starting clone process for', githubRepo.name);
+  const handleCloneRepository = async (githubRepo: GitHubRepository, event?: React.MouseEvent) => {
+    // Prevent any event bubbling
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    console.log('🚀 UI: Starting clone process for specific repository:', {
+      name: githubRepo.name,
+      fullName: githubRepo.fullName,
+      id: githubRepo.id,
+      private: githubRepo.private,
+      clickEvent: !!event
+    });
+    
+    // Log with proper logging system
+    loggers.git('clone_repository_requested', {
+      repositoryName: githubRepo.name,
+      repositoryFullName: githubRepo.fullName,
+      repositoryId: githubRepo.id,
+      isPrivate: githubRepo.private
+    });
+    
+    if (isCloning) {
+      console.warn('⚠️ UI: Clone already in progress, ignoring click');
+      return;
+    }
+    
     setIsCloning(true);
     
     try {
       console.log('⏳ UI: Calling git service to clone repository...');
+      loggers.git('clone_repository_started', { repositoryName: githubRepo.name });
+      
       const { projectId, files } = await gitService.cloneGitHubRepository(githubRepo);
       
       console.log('📋 UI: Clone completed, creating project with', Object.keys(files).length, 'files');
+      loggers.git('clone_repository_completed', { 
+        repositoryName: githubRepo.name,
+        projectId,
+        fileCount: Object.keys(files).length 
+      });
       
       // Create a new project in the app store
       const newProject = {
@@ -264,9 +298,11 @@ export const GitIntegrationPanel: React.FC<GitIntegrationPanelProps> = ({
       window.dispatchEvent(refreshEvent);
 
       console.log('✅ UI: Clone process completed successfully!');
+      loggers.git('clone_project_created', { repositoryName: githubRepo.name, projectId });
       alert(`Successfully cloned ${githubRepo.name}! Check the browser console for details.`);
     } catch (error) {
       console.error('💥 UI: Clone failed with error:', error);
+      loggers.error('clone_repository_failed', error as Error, { repositoryName: githubRepo.name });
       
       // Show detailed error information
       let errorMessage = 'Unknown error occurred';
@@ -793,15 +829,40 @@ export const GitIntegrationPanel: React.FC<GitIntegrationPanelProps> = ({
         <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center">
           <div className="bg-constellation-bg-primary border border-constellation-border rounded-lg w-[700px] max-h-[700px] flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-constellation-border">
-              <h3 className="text-lg font-semibold text-constellation-text-primary">
-                Browse GitHub Repositories
-              </h3>
-              <button
-                onClick={() => setShowRepositoryBrowser(false)}
-                className="p-1 hover:bg-constellation-bg-secondary rounded"
-              >
-                <X className="w-5 h-5 text-constellation-text-secondary" />
-              </button>
+              <div>
+                <h3 className="text-lg font-semibold text-constellation-text-primary">
+                  Browse GitHub Repositories
+                </h3>
+                <p className="text-xs text-constellation-text-tertiary">
+                  {gitState.githubRepositories.length} repositories loaded
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    console.log('🔍 Debug: Current repository state:', {
+                      totalRepos: gitState.githubRepositories.length,
+                      isCloning,
+                      searchQuery,
+                      repositories: gitState.githubRepositories.map(r => ({ 
+                        name: r.name, 
+                        id: r.id, 
+                        fullName: r.fullName 
+                      }))
+                    });
+                    alert(`Debug info logged to console. Total repositories: ${gitState.githubRepositories.length}`);
+                  }}
+                  className="px-2 py-1 text-xs bg-constellation-bg-tertiary border border-constellation-border rounded hover:bg-constellation-bg-secondary"
+                >
+                  Debug
+                </button>
+                <button
+                  onClick={() => setShowRepositoryBrowser(false)}
+                  className="p-1 hover:bg-constellation-bg-secondary rounded"
+                >
+                  <X className="w-5 h-5 text-constellation-text-secondary" />
+                </button>
+              </div>
             </div>
             
             {/* Search Bar */}
@@ -843,13 +904,20 @@ export const GitIntegrationPanel: React.FC<GitIntegrationPanelProps> = ({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {gitState.githubRepositories
-                    .filter(repo => 
-                      searchQuery === '' || 
-                      repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      repo.description.toLowerCase().includes(searchQuery.toLowerCase())
-                    )
-                    .map(repo => (
+                  {(() => {
+                    const filteredRepos = gitState.githubRepositories
+                      .filter(repo => 
+                        searchQuery === '' || 
+                        repo.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        repo.description.toLowerCase().includes(searchQuery.toLowerCase())
+                      );
+                    
+                    console.log('🔍 Repository Browser: Displaying repositories:', 
+                      filteredRepos.map(repo => ({ name: repo.name, id: repo.id }))
+                    );
+                    
+                    return filteredRepos;
+                  })().map(repo => (
                       <div
                         key={repo.id}
                         className="border border-constellation-border rounded-lg p-4 hover:bg-constellation-bg-secondary transition-colors"
@@ -887,7 +955,7 @@ export const GitIntegrationPanel: React.FC<GitIntegrationPanelProps> = ({
                         
                         <div className="flex gap-2">
                           <button
-                            onClick={() => handleCloneRepository(repo)}
+                            onClick={(e) => handleCloneRepository(repo, e)}
                             disabled={isCloning}
                             className="flex items-center gap-2 px-3 py-1.5 bg-constellation-accent-blue text-white rounded text-sm hover:bg-opacity-80 disabled:opacity-50 disabled:cursor-not-allowed"
                           >

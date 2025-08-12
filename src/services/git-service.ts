@@ -691,10 +691,25 @@ class GitService {
     projectId: string;
     files: { [path: string]: string };
   }> {
-    console.log('🔄 Starting clone for repository:', githubRepo.fullName);
+    console.log('🔄 Git Service: Starting clone for repository:', {
+      name: githubRepo.name,
+      fullName: githubRepo.fullName,
+      id: githubRepo.id,
+      private: githubRepo.private,
+      cloneUrl: githubRepo.cloneUrl
+    });
+    
+    // Log the specific repository being cloned
+    loggers.git('git_service_clone_start', {
+      repositoryName: githubRepo.name,
+      repositoryFullName: githubRepo.fullName,
+      repositoryId: githubRepo.id,
+      repositoryPrivate: githubRepo.private
+    });
     
     if (!this.githubAuth) {
       console.error('❌ Not connected to GitHub');
+      loggers.error('clone_no_auth', new Error('Not connected to GitHub'));
       throw new Error('Not connected to GitHub');
     }
 
