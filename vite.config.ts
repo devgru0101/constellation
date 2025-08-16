@@ -5,9 +5,27 @@ import path from 'path'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  esbuild: {
+    // Skip TypeScript type checking for faster builds
+    tsconfigRaw: {
+      compilerOptions: {
+        skipLibCheck: true,
+        noUnusedLocals: false,
+        noUnusedParameters: false,
+      }
+    }
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+    },
+  },
+  build: {
+    outDir: 'dist',
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+      },
     },
   },
   server: {

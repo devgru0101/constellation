@@ -103,23 +103,30 @@ Constellation IDE is built as a **microservices architecture** using Docker cont
 git clone <repository>
 cd constellation-project
 
-# Setup environment
-make dev-setup
-
-# Configure environment variables
+# Copy environment configuration
 cp .env.example .env
-# Edit .env with your values (MongoDB passwords, API keys, etc.)
+# Edit .env with your values (API keys, etc.)
 
-# Generate SSL certificates for local development
-make ssl-generate
-
-# Start all services
-make up
-
-# Initialize database
-make db-init
+# Start all services (includes automatic database initialization)
+docker-compose up -d
 
 # Check service health
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+# Access the application
+# Frontend: http://localhost (via Traefik)
+# Traefik Dashboard: http://localhost:8080
+```
+
+### Alternative Management (with Make)
+
+```bash
+# Setup environment and generate SSL certificates
+make dev-setup
+make ssl-generate
+
+# Start services with make commands
+make up
 make health
 ```
 

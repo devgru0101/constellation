@@ -45,8 +45,6 @@ services:
     container_name: constellation-mongodb-primary
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: constellation
     volumes:
       - mongodb-data:/data/db
@@ -57,7 +55,7 @@ services:
       - constellation-network
     ports:
       - "27017:27017"
-    command: mongod --replSet rs0 --bind_ip_all
+    command: mongod --bind_ip_all
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 30s
@@ -92,7 +90,7 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - MONGODB_URL=mongodb://admin:${MONGODB_ROOT_PASSWORD}@mongodb-primary:27017/constellation?authSource=admin
+      - MONGODB_URL=mongodb://mongodb-primary:27017/constellation
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - JWT_SECRET=${JWT_SECRET}
       - SERVICE_PORT=8000
@@ -121,7 +119,7 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - MONGODB_URL=mongodb://admin:${MONGODB_ROOT_PASSWORD}@mongodb-primary:27017/constellation?authSource=admin
+      - MONGODB_URL=mongodb://mongodb-primary:27017/constellation
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
       - SERVICE_PORT=8002
     volumes:
@@ -147,7 +145,7 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - MONGODB_URL=mongodb://admin:${MONGODB_ROOT_PASSWORD}@mongodb-primary:27017/constellation?authSource=admin
+      - MONGODB_URL=mongodb://mongodb-primary:27017/constellation
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/2
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - SERVICE_PORT=8001
@@ -171,7 +169,7 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-      - MONGODB_URL=mongodb://admin:${MONGODB_ROOT_PASSWORD}@mongodb-primary:27017/constellation?authSource=admin
+      - MONGODB_URL=mongodb://mongodb-primary:27017/constellation
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/3
       - SERVICE_PORT=8003
     volumes:

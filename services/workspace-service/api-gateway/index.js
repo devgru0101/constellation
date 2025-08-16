@@ -7,7 +7,6 @@ const rateLimit = require('express-rate-limit');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const promMiddleware = require('prometheus-api-metrics');
 const winston = require('winston');
-const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
@@ -99,7 +98,7 @@ const authenticateToken = (req, res, next) => {
 const services = {
   projects: {
     target: process.env.PROJECT_SERVICE_URL || 'http://project-service:8002',
-    pathRewrite: { '^/api/projects': '/projects' }
+    pathRewrite: { '^/api/projects': '' }
   },
   claude: {
     target: process.env.CLAUDE_SERVICE_URL || 'http://claude-service:8001',
@@ -128,14 +127,7 @@ const createServiceProxy = (serviceConfig) => {
 };
 
 // Route to services
-try {
-  logger.info('Setting up project proxy:', services.projects);
-  app.use('/api/projects', createServiceProxy(services.projects));
-  logger.info('Project proxy configured successfully');
-} catch (error) {
-  logger.error('Failed to configure project proxy:', error);
-}
-
+app.use('/api/projects', createServiceProxy(services.projects));
 app.use('/api/chat', createServiceProxy(services.claude));
 app.use('/api/generate', createServiceProxy(services.claude));
 app.use('/api/workspace', createServiceProxy(services.workspace));
