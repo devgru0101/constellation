@@ -6,6 +6,7 @@
  */
 
 import { loggers } from './logging-system';
+import { API_CONFIG } from '@/config/api';
 
 interface ProjectWorkspace {
   id: string;
@@ -44,7 +45,7 @@ class ClaudeCodeAPI {
   private workspaces: Map<string, ProjectWorkspace> = new Map();
   private baseWorkspacePath = '/home/ssitzer/constellation-projects';
   private config = {
-    apiEndpoint: 'http://localhost:8000/api',
+    apiEndpoint: API_CONFIG.apiUrl,
     apiKey: null as string | null
   };
 
@@ -70,7 +71,7 @@ class ClaudeCodeAPI {
    */
   private async callBackendAPI(endpoint: string, method: string = 'GET', body?: any): Promise<any> {
     try {
-      const response = await fetch(`http://localhost:8000/api${endpoint}`, {
+      const response = await fetch(`${API_CONFIG.apiUrl}${endpoint}`, {
         method,
         headers: {
           'Content-Type': 'application/json',

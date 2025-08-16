@@ -8,6 +8,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSnapshot } from 'valtio';
 import { appStore } from '@/stores/app-store';
+import { API_CONFIG } from '@/config/api';
 import { projectWorkspaceManager } from '@/services/project-workspace';
 import { claudeCodeAPI } from '@/services/claude-code-api';
 import { loggers } from '@/services/logging-system';
@@ -69,7 +70,7 @@ export const ProjectStatusMonitor: React.FC = () => {
     setIsLoading(true);
     try {
       // Get workspace projects
-      const response = await fetch('http://localhost:8000/api/debug/projects');
+      const response = await fetch(`${API_CONFIG.apiUrl}/debug/projects`);
       const data = await response.json();
       
       const projectStatuses: ProjectStatus[] = [];

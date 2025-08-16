@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useSnapshot } from 'valtio'
 import { appStore, useAppStore } from '@/stores/app-store'
+import { API_CONFIG } from '@/config/api'
 import { 
   RefreshCw, 
   ExternalLink, 
@@ -87,7 +88,7 @@ export const PreviewPanel: React.FC = () => {
       
       try {
         // Get current project info
-        await fetch('http://localhost:8000/api/debug/projects')
+        const response = await fetch(`${API_CONFIG.apiUrl}/debug/projects`)
         const data = await response.json()
         
         if (data.projects && data.projects.length > 0 && state.currentProject) {
@@ -268,17 +269,6 @@ ${action === 'deploy' ? `🌐 Your application is now live at: ${env.url}` : ''}
         type: 'generation',
         agentId: 'master-orchestrator'
       })
-    }
-  }
-
-  const getTypeColor = (type: PreviewEnvironment['type']) => {
-    switch (type) {
-      case 'development':
-        return 'bg-constellation-accent-blue bg-opacity-20 text-constellation-accent-blue'
-      case 'staging':
-        return 'bg-constellation-accent-yellow bg-opacity-20 text-constellation-accent-yellow'
-      case 'production':
-        return 'bg-constellation-accent-green bg-opacity-20 text-constellation-accent-green'
     }
   }
 
@@ -855,7 +845,7 @@ const PreviewContent: React.FC<{ url: string }> = ({ url }) => {
     const checkProjectStatus = async () => {
       try {
         // First check if there are any projects
-        await fetch('http://localhost:8000/api/debug/projects')
+        const response = await fetch(`${API_CONFIG.apiUrl}/debug/projects`)
         const data = await response.json()
         
         if (data.projects && data.projects.length > 0) {

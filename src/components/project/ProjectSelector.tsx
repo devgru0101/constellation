@@ -3,7 +3,7 @@ import { useSnapshot } from 'valtio'
 import { appStore } from '@/stores/app-store'
 import { projectWorkspaceManager } from '@/services/project-workspace'
 import { ChevronDown, Plus, FolderOpen, Settings, Trash2, Loader2 } from 'lucide-react'
-import { ProjectTemplateSelector } from './ProjectTemplateSelector'
+// ProjectTemplateSelector component was removed during cleanup
 import { loggers } from '@/services/logging-system'
 
 interface ProjectSelectorProps {
@@ -320,30 +320,22 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
         </div>
       )}
 
-      {/* Project Template Selector Modal */}
+      {/* Simple Project Creation Modal - Placeholder for removed ProjectTemplateSelector */}
       {showCreateModal && (
-        <ProjectTemplateSelector
-          isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onProjectCreated={(project) => {
-            setShowCreateModal(false)
-            setIsOpen(false) // Also close the project selector dropdown
-            
-            loggers.ui('project_created_with_agent', {
-              projectId: project.id,
-              projectName: project.name,
-              projectType: project.type
-            }, project.id)
-            
-            // Reload projects list to include the new project
-            loadProjects()
-            
-            // Notify parent component
-            if (onProjectCreate) {
-              onProjectCreate()
-            }
-          }}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-constellation-bg-secondary p-6 rounded-lg border border-constellation-border max-w-md w-full mx-4">
+            <h3 className="text-lg font-medium text-constellation-text-primary mb-4">Create New Project</h3>
+            <p className="text-constellation-text-secondary mb-4">
+              Project creation functionality will be restored in a future update.
+            </p>
+            <button
+              onClick={() => setShowCreateModal(false)}
+              className="px-4 py-2 bg-constellation-accent-blue text-constellation-bg-primary rounded hover:opacity-80"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )

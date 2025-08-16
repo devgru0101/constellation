@@ -4,7 +4,7 @@ import { appStore, useAppStore } from '@/stores/app-store'
 import { Editor } from '@monaco-editor/react'
 import { X, Plus } from 'lucide-react'
 import type { editor } from 'monaco-editor'
-import { SandpackFileExplorer } from './sandpack'
+// Note: SandpackFileExplorer removed during cleanup
 
 export const CodeEditor: React.FC = () => {
   const state = useSnapshot(appStore)
@@ -65,9 +65,12 @@ export const CodeEditor: React.FC = () => {
 
   return (
     <div className="code-editor flex h-full">
-      {/* File Tree */}
-      <div className="file-tree-container w-64 flex-shrink-0">
-        <SandpackFileExplorer />
+      {/* File Tree - Placeholder for removed SandpackFileExplorer */}
+      <div className="file-tree-container w-64 flex-shrink-0 bg-constellation-bg-secondary border-r border-constellation-border">
+        <div className="p-4 text-constellation-text-secondary text-sm">
+          <div className="mb-2 font-medium">File Explorer</div>
+          <div className="text-xs">File tree will be integrated with project workspace</div>
+        </div>
       </div>
 
       {/* Editor Area */}

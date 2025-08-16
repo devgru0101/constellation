@@ -10,6 +10,8 @@
  * - Claude Code interactions and responses
  */
 
+import { API_CONFIG } from '@/config/api';
+
 export interface LogEntry {
   id: string;
   timestamp: Date;
@@ -187,7 +189,7 @@ class ComprehensiveLogger {
    */
   private async sendToBackend(logEntry: LogEntry): Promise<void> {
     try {
-      await fetch('http://localhost:8000/api/logs', {
+      await fetch(`${API_CONFIG.apiUrl}/logs`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(logEntry)

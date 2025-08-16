@@ -9,6 +9,8 @@
  * 5. Application runs and is accessible via preview
  */
 
+import { API_CONFIG } from '@/config/api';
+
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { claudeCodeAPI } from '../services/claude-code-api';
 import { projectWorkspaceManager, PROJECT_TEMPLATES } from '../services/project-workspace';
@@ -24,7 +26,7 @@ describe('Claude Code Integration Test Suite', () => {
     
     // Test if backend API is running
     try {
-      const response = await fetch('http://localhost:8000/api/health');
+      const response = await fetch(`${API_CONFIG.apiUrl}/health`);
       if (!response.ok) {
         throw new Error('Backend API not responding');
       }
@@ -49,7 +51,7 @@ describe('Claude Code Integration Test Suite', () => {
 
   describe('1. Backend API Health Check', () => {
     it('should have backend API running', async () => {
-      const response = await fetch('http://localhost:8000/api/health');
+      const response = await fetch(`${API_CONFIG.apiUrl}/health`);
       expect(response.ok).toBe(true);
       
       const health = await response.json();
@@ -58,7 +60,7 @@ describe('Claude Code Integration Test Suite', () => {
     });
 
     it('should test Claude Code CLI availability', async () => {
-      const response = await fetch('http://localhost:8000/api/claude-code/test');
+      const response = await fetch(`${API_CONFIG.apiUrl}/claude-code/test`);
       const result = await response.json();
       
       if (result.available) {

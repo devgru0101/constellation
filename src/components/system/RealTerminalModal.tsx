@@ -6,6 +6,7 @@ import { WebLinksAddon } from '@xterm/addon-web-links'
 import '@xterm/xterm/css/xterm.css'
 import { loggers } from '@/services/logging-system'
 import { terminalPersistence } from '@/services/terminal-persistence'
+import { API_CONFIG } from '@/config/api'
 
 interface RealTerminalModalProps {
   isOpen: boolean
@@ -188,8 +189,7 @@ export const RealTerminalModal: React.FC<RealTerminalModalProps> = ({ isOpen, on
   const connectWebSocket = (xterm: XTerm, fitAddon: FitAddon) => {
     setConnectionStatus('connecting')
     
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const wsUrl = `${protocol}//localhost:8000/terminal`
+    const wsUrl = API_CONFIG.wsUrl.replace('/ws', '/terminal')
     
     const ws = new WebSocket(wsUrl)
     wsRef.current = ws

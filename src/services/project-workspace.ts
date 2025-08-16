@@ -9,6 +9,7 @@ import { claudeCodeAPI, type ProjectWorkspace } from './claude-code-api';
 import { appStore } from '@/stores/app-store';
 import { loggers } from './logging-system';
 import { concurrentOperationsService } from './concurrent-operations-service';
+import { API_CONFIG } from '@/config/api';
 
 export interface Project {
   id: string;
@@ -56,8 +57,8 @@ class ProjectWorkspaceManager {
       console.log('🔄 Initializing project workspace manager...');
       
       // Get all projects from the new MongoDB API
-      console.log('📡 Making API call to http://localhost:8000/api/projects');
-      const response = await fetch('http://localhost:8000/api/projects');
+      console.log(`📡 Making API call to ${API_CONFIG.apiUrl}/projects`);
+      const response = await fetch(`${API_CONFIG.apiUrl}/projects`);
       console.log(`📡 API response status: ${response.status} ${response.statusText}`);
       
       if (!response.ok) {
@@ -138,7 +139,7 @@ class ProjectWorkspaceManager {
    * Fallback initialization using the old filesystem approach
    */
   async initializeFromFilesystem(): Promise<void> {
-    const response = await fetch('http://localhost:8000/api/debug/projects');
+    const response = await fetch(`${API_CONFIG.apiUrl}/debug/projects`);
     const data = await response.json();
     
     if (data.projects && data.projects.length > 0) {
@@ -265,7 +266,7 @@ class ProjectWorkspaceManager {
 
       // Save project to API
       try {
-        const apiResponse = await fetch('http://localhost:8000/api/projects', {
+        const apiResponse = await fetch(`${API_CONFIG.apiUrl}/projects`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -664,7 +665,7 @@ class ProjectWorkspaceManager {
 
       // Delete from API first
       try {
-        const response = await fetch(`http://localhost:8000/api/projects/${projectId}`, {
+        const response = await fetch(`${API_CONFIG.apiUrl}/projects/${projectId}`, {
           method: 'DELETE'
         });
         
@@ -796,7 +797,7 @@ class ProjectWorkspaceManager {
   async restoreActiveProject(): Promise<Project | null> {
     try {
       // Get debug info to find most recent project
-      const response = await fetch('http://localhost:8000/api/debug/projects');
+      const response = await fetch(`${API_CONFIG.apiUrl}/debug/projects`);
       const data = await response.json();
       
       if (data.projects && data.projects.length > 0) {

@@ -1,67 +1,99 @@
-const express = require('express');
-const helmet = require('helmet');
-const cors = require('cors');
-const morgan = require('morgan');
-const compression = require('compression');
-const winston = require('winston');
-require('dotenv').config();
+const BaseService = require('../common/base-service');
 
-const app = express();
-const PORT = process.env.SERVICE_PORT || 8001;
-
-// Logging
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.errors({ stack: true }),
-    winston.format.json()
-  ),
-  transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({ filename: 'claude-service.log' })
-  ]
-});
-
-// Middleware
-app.use(helmet());
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:3000', credentials: true }));
-app.use(compression());
-app.use(morgan('combined'));
-app.use(express.json({ limit: '10mb' }));
-
-// Health check
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    service: 'claude-service',
-    version: '1.0.0'
-  });
+// Create service instance
+const service = new BaseService({
+  serviceName: 'claude-service',
+  port: process.env.SERVICE_PORT || 8001,
+  version: '1.0.0'
 });
 
 // Claude AI routes
-app.post('/chat', async (req, res) => {
+service.app.post('/chat', async (req, res) => {
   try {
-    res.json({ success: true, message: 'Claude chat not implemented yet' });
+    const { message, projectId, context } = req.body;
+    
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
+    }
+    
+    service.logger.info('Chat request received', { projectId, messageLength: message.length });
+    
+    // TODO: Implement Claude AI integration
+    // For now, return a placeholder response
+    const response = {
+      success: true,
+      data: {
+        response: `Echo: ${message}`,
+        projectId,
+        timestamp: new Date().toISOString()
+      }
+    };
+    
+    res.json(response);
   } catch (error) {
-    logger.error('Chat error:', error);
+    service.logger.error('Chat error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-app.post('/generate', async (req, res) => {
+service.app.post('/generate', async (req, res) => {
   try {
-    res.json({ success: true, message: 'Code generation not implemented yet' });
+    const { prompt, type, projectId } = req.body;
+    
+    if (!prompt) {
+      return res.status(400).json({ error: 'Prompt is required' });
+    }
+    
+    service.logger.info('Code generation request', { type, projectId });
+    
+    // TODO: Implement code generation
+    const response = {
+      success: true,
+      data: {
+        generated: `// Generated code for: ${prompt}`,
+        type: type || 'javascript',
+        projectId,
+        timestamp: new Date().toISOString()
+      }
+    };
+    
+    res.json(response);
   } catch (error) {
-    logger.error('Generation error:', error);
+    service.logger.error('Generation error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+service.app.post('/analyze', async (req, res) => {
+  try {
+    const { code, language, projectId } = req.body;
+    
+    if (!code) {
+      return res.status(400).json({ error: 'Code is required' });
+    }
+    
+    service.logger.info('Code analysis request', { language, projectId });
+    
+    // TODO: Implement code analysis
+    const response = {
+      success: true,
+      data: {
+        analysis: 'Code analysis placeholder',
+        suggestions: [],
+        language: language || 'auto-detect',
+        projectId,
+        timestamp: new Date().toISOString()
+      }
+    };
+    
+    res.json(response);
+  } catch (error) {
+    service.logger.error('Analysis error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 // Start server
-const server = app.listen(PORT, '0.0.0.0', () => {
-  logger.info(`Claude Service running on port ${PORT}`);
-});
+service.start();
 
-module.exports = app;
+module.exports = service.app;

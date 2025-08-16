@@ -3,6 +3,8 @@
  * Automatically forwards browser console logs to the server for remote debugging
  */
 
+import { API_CONFIG } from '@/config/api';
+
 interface ConsoleLogEntry {
   level: 'log' | 'info' | 'warn' | 'error' | 'debug';
   message: string;
@@ -175,7 +177,7 @@ class BrowserConsoleLogger {
     this.logQueue = [];
 
     try {
-      await fetch('http://localhost:8000/api/browser-logs', {
+      await fetch(`${API_CONFIG.apiUrl}/browser-logs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

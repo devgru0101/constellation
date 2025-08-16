@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { X, Terminal, Copy, Download, Settings, AlertCircle } from 'lucide-react'
 import { loggers } from '@/services/logging-system'
+import { API_CONFIG } from '@/config/api'
 
 interface HostTerminalModalProps {
   isOpen: boolean
@@ -94,7 +95,7 @@ System Maintenance:
         const subCmd = cmd.substring('constellation '.length)
         
         if (subCmd === 'status') {
-          const response = await fetch('http://localhost:8000/api/health')
+          const response = await fetch(`${API_CONFIG.apiUrl}/health`)
           const health = await response.json()
           
           setOutput(prev => [...prev, {
@@ -109,8 +110,8 @@ Claude Code: ✅ Available
 
 🔗 Endpoints:
   - Frontend: http://172.20.225.46:3000
-  - Backend API: http://localhost:8000
-  - Health Check: http://localhost:8000/api/health`,
+  - Backend API: ${API_CONFIG.baseUrl}
+  - Health Check: ${API_CONFIG.apiUrl}/health`,
             timestamp: new Date()
           }])
           setIsExecuting(false)
@@ -150,7 +151,7 @@ To restart services manually:
       }
 
       // Execute real system command via backend API
-      const response = await fetch('http://localhost:8000/api/host/exec', {
+      const response = await fetch(`${API_CONFIG.apiUrl}/host/exec`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
