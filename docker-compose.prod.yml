@@ -1,0 +1,114 @@
+# Production overrides for docker-compose.yml
+version: '3.8'
+
+services:
+  traefik:
+    command:
+      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/ssl/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+    labels:
+      - "traefik.http.routers.traefik.rule=Host(`traefik.${DOMAIN}`)"
+      - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
+
+  mongodb-primary:
+    volumes:
+      - /opt/constellation/data/mongodb:/data/db
+      - /opt/constellation/config/mongodb:/data/configdb
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+
+  redis:
+    volumes:
+      - /opt/constellation/data/redis:/data
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  api-gateway:
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=warn
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+      replicas: 2
+    labels:
+      - "traefik.http.routers.api.rule=Host(`api.${DOMAIN}`)"
+      - "traefik.http.routers.api.tls.certresolver=letsencrypt"
+
+  project-service:
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=warn
+    volumes:
+      - /opt/constellation/workspaces:/app/workspaces
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+      replicas: 2
+
+  claude-service:
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=warn
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+      replicas: 2
+
+  workspace-service:
+    environment:
+      - NODE_ENV=production
+      - LOG_LEVEL=warn
+    volumes:
+      - /opt/constellation/workspaces:/app/workspaces
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+      replicas: 2
+
+  frontend:
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=https://api.${DOMAIN}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+      replicas: 2
+    labels:
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+
+  prometheus:
+    volumes:
+      - /opt/constellation/data/prometheus:/prometheus
+    labels:
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.${DOMAIN}`)"
+      - "traefik.http.routers.prometheus.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.prometheus.middlewares=auth@file"
+
+  grafana:
+    volumes:
+      - /opt/constellation/data/grafana:/var/lib/grafana
+    labels:
+      - "traefik.http.routers.grafana.rule=Host(`grafana.${DOMAIN}`)"
+      - "traefik.http.routers.grafana.tls.certresolver=letsencrypt"

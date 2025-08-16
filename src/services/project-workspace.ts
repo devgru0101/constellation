@@ -47,7 +47,7 @@ class ProjectWorkspaceManager {
   private isInitialized: boolean = false;
 
   /**
-   * Initialize and recover existing projects from filesystem
+   * Initialize and recover existing projects from MongoDB API
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
@@ -55,60 +55,65 @@ class ProjectWorkspaceManager {
     try {
       console.log('🔄 Initializing project workspace manager...');
       
-      // Get all existing workspaces from the backend
-      const response = await fetch('http://localhost:8000/api/debug/projects');
-      const data = await response.json();
+      // Get all projects from the new MongoDB API
+      console.log('📡 Making API call to http://localhost:8000/api/projects');
+      const response = await fetch('http://localhost:8000/api/projects');
+      console.log(`📡 API response status: ${response.status} ${response.statusText}`);
       
-      if (data.projects && data.projects.length > 0) {
-        console.log(`📂 Found ${data.projects.length} existing workspaces`);
+      if (!response.ok) {
+        throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log(`📡 API response data:`, data);
+      
+      if (data.success && data.projects && data.projects.length > 0) {
+        console.log(`📂 Found ${data.projects.length} existing projects`);
         
-        for (const workspace of data.projects) {
+        for (const projectData of data.projects) {
           try {
-            // Parse project info from workspace readme
-            const projectName = workspace.readme?.match(/# (.+) Workspace/)?.[1] || 
-                              workspace.id.replace('project-', '').split('-').slice(0, -1).join('-') || 
-                              'Recovered Project';
-            
-            // Determine project type from files (basic heuristic)
-            let projectType: Project['type'] = 'encore-solidjs';
-            if (workspace.files?.some((f: string) => f.includes('encore.app'))) {
-              projectType = 'encore-solidjs';
-            } else if (workspace.files?.some((f: string) => f.includes('package.json'))) {
-              projectType = 'fullstack-ts';
-            }
-            
             const project: Project = {
-              id: workspace.id,
-              name: projectName,
-              type: projectType,
-              status: 'ready',
-              createdAt: new Date(workspace.created),
-              updatedAt: new Date(),
-              knowledgeBase: {
+              id: projectData.id,
+              name: projectData.name,
+              type: projectData.type,
+              status: projectData.status,
+              createdAt: new Date(projectData.createdAt),
+              updatedAt: new Date(projectData.updatedAt),
+              description: projectData.description,
+              workspace: {
+                id: projectData.id,
+                path: projectData.workspacePath,
+                files: projectData.metadata?.originalFiles || []
+              },
+              knowledgeBase: projectData.knowledgeBase || {
                 requirements: [],
                 businessRules: [],
-                techStack: this.getTechStackForType(projectType),
+                techStack: this.getTechStackForType(projectData.type),
                 apis: []
               }
             };
             
-            this.projects.set(workspace.id, project);
-            console.log(`✅ Recovered project: ${projectName} (${workspace.id})`);
+            this.projects.set(projectData.id, project);
+            console.log(`✅ Loaded project: ${project.name} (${project.id})`);
             
           } catch (error) {
-            console.warn(`⚠️ Failed to recover project ${workspace.id}:`, error);
+            console.warn(`⚠️ Failed to load project ${projectData.id}:`, error);
           }
         }
         
-        // Set the most recently created project as active
+        // Set the most recently updated project as active
         const sortedProjects = Array.from(this.projects.values())
-          .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+          .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
         
         if (sortedProjects.length > 0) {
           const mostRecent = sortedProjects[0];
           await this.switchToProject(mostRecent.id);
           console.log(`🎯 Set active project: ${mostRecent.name} (${mostRecent.id})`);
         }
+      } else if (data.success && data.total === 0) {
+        console.log('📂 No existing projects found');
+      } else {
+        console.warn('⚠️ Failed to load projects from API:', data);
       }
       
       this.isInitialized = true;
@@ -116,7 +121,66 @@ class ProjectWorkspaceManager {
       
     } catch (error) {
       console.error('❌ Failed to initialize project workspace manager:', error);
+      console.log('🔄 Falling back to filesystem approach...');
+      
+      // Fallback to the old debug API if the new one fails
+      try {
+        await this.initializeFromFilesystem();
+      } catch (fallbackError) {
+        console.error('❌ Fallback initialization also failed:', fallbackError);
+      }
+      
       this.isInitialized = true; // Still mark as initialized to prevent infinite loops
+    }
+  }
+
+  /**
+   * Fallback initialization using the old filesystem approach
+   */
+  async initializeFromFilesystem(): Promise<void> {
+    const response = await fetch('http://localhost:8000/api/debug/projects');
+    const data = await response.json();
+    
+    if (data.projects && data.projects.length > 0) {
+      console.log(`📂 Found ${data.projects.length} filesystem workspaces`);
+      
+      for (const workspace of data.projects) {
+        try {
+          // Parse project info from workspace readme
+          const projectName = workspace.readme?.match(/# (.+) Workspace/)?.[1] || 
+                            workspace.id.replace('project-', '').split('-').slice(0, -1).join('-') || 
+                            'Recovered Project';
+          
+          // Determine project type from files (basic heuristic)
+          let projectType: Project['type'] = 'encore-solidjs';
+          if (workspace.files?.some((f: string) => f.includes('encore.app'))) {
+            projectType = 'encore-solidjs';
+          } else if (workspace.files?.some((f: string) => f.includes('package.json'))) {
+            projectType = 'fullstack-ts';
+          }
+          
+          const project: Project = {
+            id: workspace.id,
+            name: projectName,
+            type: projectType,
+            status: 'ready',
+            createdAt: new Date(workspace.created),
+            updatedAt: new Date(),
+            knowledgeBase: {
+              requirements: [],
+              businessRules: [],
+              techStack: this.getTechStackForType(projectType),
+              apis: []
+            }
+          };
+          
+          this.projects.set(workspace.id, project);
+          console.log(`✅ Recovered project: ${projectName} (${workspace.id})`);
+          
+        } catch (error) {
+          console.warn(`⚠️ Failed to recover project ${workspace.id}:`, error);
+        }
+      }
     }
   }
 
@@ -198,6 +262,44 @@ class ProjectWorkspaceManager {
 
       project.status = 'ready';
       project.updatedAt = new Date();
+
+      // Save project to API
+      try {
+        const apiResponse = await fetch('http://localhost:8000/api/projects', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            id: project.id,
+            name: project.name,
+            description: project.description,
+            type: project.type,
+            status: project.status,
+            workspacePath: workspace?.path,
+            knowledgeBase: project.knowledgeBase,
+            containerConfig: {
+              image: template?.containerConfig.image || 'node:18-alpine',
+              ports: template?.containerConfig.ports || [3000, 4000],
+              environment: {
+                PROJECT_NAME: sanitizedName,
+                PROJECT_DISPLAY_NAME: name,
+                PROJECT_TYPE: type,
+                NODE_ENV: 'development',
+                ...(template?.containerConfig.environment || {})
+              }
+            }
+          })
+        });
+
+        if (!apiResponse.ok) {
+          console.warn(`⚠️ Failed to save project to API: ${apiResponse.status}`);
+        } else {
+          console.log('✅ Project saved to API successfully');
+        }
+      } catch (apiError) {
+        console.warn('⚠️ API save failed, continuing with local state:', apiError);
+      }
 
       loggers.project('project_creation_completed', {
         projectId,
@@ -558,6 +660,19 @@ class ProjectWorkspaceManager {
       // Stop project if running
       if (project.status === 'running') {
         await this.stopProject(projectId);
+      }
+
+      // Delete from API first
+      try {
+        const response = await fetch(`http://localhost:8000/api/projects/${projectId}`, {
+          method: 'DELETE'
+        });
+        
+        if (!response.ok) {
+          console.warn(`⚠️ Failed to delete project from API: ${response.status}`);
+        }
+      } catch (apiError) {
+        console.warn('⚠️ API deletion failed, continuing with local cleanup:', apiError);
       }
 
       // Destroy workspace and container

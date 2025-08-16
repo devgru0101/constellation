@@ -1,0 +1,244 @@
+version: '3.8'
+
+networks:
+  constellation-network:
+    driver: bridge
+  database-network:
+    driver: bridge
+    internal: true
+
+volumes:
+  mongodb-data:
+    driver: local
+  mongodb-config:
+    driver: local
+  redis-data:
+    driver: local
+  project-workspaces:
+    driver: local
+
+services:
+  # Reverse Proxy & Load Balancer
+  traefik:
+    image: traefik:v3.0
+    container_name: constellation-traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/traefik:/etc/traefik
+      - ./data/ssl:/ssl
+    networks:
+      - constellation-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`traefik.constellation.local`)"
+      - "traefik.http.routers.traefik.tls=true"
+      - "traefik.http.routers.traefik.service=api@internal"
+
+  # Database Cluster (Primary)
+  mongodb-primary:
+    image: mongo:7.0
+    container_name: constellation-mongodb-primary
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: constellation
+    volumes:
+      - mongodb-data:/data/db
+      - mongodb-config:/data/configdb
+      - ./init/mongodb:/docker-entrypoint-initdb.d
+    networks:
+      - database-network
+      - constellation-network
+    ports:
+      - "27017:27017"
+    command: mongod --replSet rs0 --bind_ip_all
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache
+  redis:
+    image: redis:7.2-alpine
+    container_name: constellation-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+      - ./config/redis:/usr/local/etc/redis
+    networks:
+      - constellation-network
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # API Gateway Service
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: constellation-api-gateway
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URL=mongodb://admin:${MONGODB_ROOT_PASSWORD}@mongodb-primary:27017/constellation?authSource=admin
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - JWT_SECRET=${JWT_SECRET}
+      - SERVICE_PORT=8000
+    networks:
+      - constellation-network
+    depends_on:
+      - mongodb-primary
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`api.constellation.local`) || PathPrefix(`/api`)"
+      - "traefik.http.routers.api.tls=true"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Project Management Service
+  project-service:
+    build:
+      context: ./services/project-service
+      dockerfile: Dockerfile
+    container_name: constellation-project-service
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URL=mongodb://admin:${MONGODB_ROOT_PASSWORD}@mongodb-primary:27017/constellation?authSource=admin
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - SERVICE_PORT=8002
+    volumes:
+      - project-workspaces:/app/workspaces
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - constellation-network
+    depends_on:
+      - mongodb-primary
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.projects.rule=PathPrefix(`/api/projects`)"
+      - "traefik.http.routers.projects.tls=true"
+      - "traefik.http.services.projects.loadbalancer.server.port=8002"
+
+  # Claude AI Service
+  claude-service:
+    build:
+      context: ./services/claude-service
+      dockerfile: Dockerfile
+    container_name: constellation-claude-service
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URL=mongodb://admin:${MONGODB_ROOT_PASSWORD}@mongodb-primary:27017/constellation?authSource=admin
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/2
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - SERVICE_PORT=8001
+    networks:
+      - constellation-network
+    depends_on:
+      - mongodb-primary
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.claude.rule=PathPrefix(`/api/chat`) || PathPrefix(`/api/generate`)"
+      - "traefik.http.routers.claude.tls=true"
+      - "traefik.http.services.claude.loadbalancer.server.port=8001"
+
+  # Workspace Management Service
+  workspace-service:
+    build:
+      context: ./services/workspace-service
+      dockerfile: Dockerfile
+    container_name: constellation-workspace-service
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URL=mongodb://admin:${MONGODB_ROOT_PASSWORD}@mongodb-primary:27017/constellation?authSource=admin
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/3
+      - SERVICE_PORT=8003
+    volumes:
+      - project-workspaces:/app/workspaces
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - constellation-network
+    depends_on:
+      - mongodb-primary
+      - redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.workspace.rule=PathPrefix(`/api/workspace`) || PathPrefix(`/api/container`)"
+      - "traefik.http.routers.workspace.tls=true"
+      - "traefik.http.services.workspace.loadbalancer.server.port=8003"
+
+  # Frontend Service
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: constellation-frontend
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=https://api.constellation.local
+    networks:
+      - constellation-network
+    depends_on:
+      - api-gateway
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`constellation.local`)"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+
+  # Monitoring & Observability
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: constellation-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./config/prometheus:/etc/prometheus
+      - ./data/prometheus:/prometheus
+    networks:
+      - constellation-network
+    ports:
+      - "9090:9090"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`prometheus.constellation.local`)"
+      - "traefik.http.routers.prometheus.tls=true"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: constellation-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+      - ./config/grafana:/etc/grafana/provisioning
+    networks:
+      - constellation-network
+    depends_on:
+      - prometheus
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`grafana.constellation.local`)"
+      - "traefik.http.routers.grafana.tls=true"

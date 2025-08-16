@@ -156,6 +156,8 @@ derive({
 // Actions
 export const useAppStore = () => {
   const initializeApp = async () => {
+    console.log('🚀 App Store: initializeApp called');
+    
     // Load from localStorage
     const savedTheme = localStorage.getItem('constellation-theme')
     if (savedTheme) {
@@ -189,9 +191,38 @@ export const useAppStore = () => {
         }
       }));
       
-      console.log(`✅ Loaded ${projects.length} existing projects into app store`);
+      // Ensure currentProject is set if workspace manager has an active project
+      const currentProject = projectWorkspaceManager.getCurrentProject();
+      if (currentProject && !appStore.currentProject) {
+        console.log(`🔄 Setting current project from workspace manager: ${currentProject.name} (${currentProject.id})`);
+        appStore.currentProject = {
+          id: currentProject.id,
+          name: currentProject.name,
+          type: currentProject.type as any,
+          description: currentProject.description || '',
+          status: 'active',
+          createdAt: currentProject.createdAt,
+          updatedAt: currentProject.updatedAt,
+          knowledgeBase: {
+            id: `kb-${currentProject.id}`,
+            projectId: currentProject.id,
+            auth: { type: 'jwt', roles: ['admin', 'user'] },
+            database: { type: 'postgresql', features: [] },
+            integrations: [],
+            services: [],
+            requirements: currentProject.knowledgeBase?.requirements || [],
+            businessRules: currentProject.knowledgeBase?.businessRules || []
+          }
+        };
+      }
+      
+      console.log(`✅ App Store: Loaded ${projects.length} existing projects into app store`);
+      if (appStore.currentProject) {
+        console.log(`✅ App Store: Current project: ${appStore.currentProject.name} (${appStore.currentProject.id})`);
+      }
     } catch (error) {
-      console.error('Failed to initialize projects:', error);
+      console.error('❌ App Store: Failed to initialize projects:', error);
+      console.error('❌ App Store: Error details:', error.message, error.stack);
     }
     
     // Start with clean chat messages

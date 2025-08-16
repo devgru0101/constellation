@@ -15,12 +15,43 @@ const { v4: uuidv4 } = require('uuid');
 const WebSocket = require('ws');
 const pty = require('node-pty');
 
+// MongoDB integration
+const { database, Project } = require('./db/models');
+
 const app = express();
 const PORT = process.env.PORT || 8000;
 const WORKSPACE_BASE = '/home/ssitzer/constellation-projects';
 
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
+
+// Initialize MongoDB and project routes
+async function initializeDatabase() {
+  try {
+    console.log('🔄 Initializing database connection...');
+    await database.connect();
+    Project.init(database);
+    console.log('✅ Database connected and initialized');
+    
+    // Add project routes
+    const projectRoutes = require('./routes/projects');
+    app.use('/api', projectRoutes);
+    console.log('✅ Project routes initialized');
+    
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error.message);
+    console.log('⚠️ Continuing with fallback storage - some features may not work');
+    
+    // Still initialize project routes even if database fails
+    try {
+      const projectRoutes = require('./routes/projects');
+      app.use('/api', projectRoutes);
+      console.log('✅ Project routes initialized with fallback storage');
+    } catch (routeError) {
+      console.error('❌ Failed to initialize project routes:', routeError.message);
+    }
+  }
+}
 
 // Ensure workspace directory exists
 exec(`mkdir -p ${WORKSPACE_BASE}`, (error) => {
@@ -1114,15 +1145,32 @@ app.get('/api/claude-code/test', async (req, res) => {
   }
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`\n🚀 Claude Code Bridge API Server running on port ${PORT}`);
-  console.log(`📁 Workspace directory: ${WORKSPACE_BASE}`);
-  console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`🧪 Claude Code test: http://localhost:${PORT}/api/claude-code/test`);
-  console.log(`💻 WebSocket Terminal: ws://localhost:${PORT}/terminal\n`);
+// Initialize database and start server
+async function startServer() {
+  await initializeDatabase();
   
-  // Setup console log cleanup every 5 minutes
-  setupConsoleLogCleanup();
+  const server = app.listen(PORT, () => {
+    console.log(`\n🚀 Claude Code Bridge API Server running on port ${PORT}`);
+    console.log(`📁 Workspace directory: ${WORKSPACE_BASE}`);
+    console.log(`🔗 Health check: http://localhost:${PORT}/api/health`);
+    console.log(`🧪 Claude Code test: http://localhost:${PORT}/api/claude-code/test`);
+    console.log(`📊 Projects API: http://localhost:${PORT}/api/projects`);
+    console.log(`💻 WebSocket Terminal: ws://localhost:${PORT}/terminal\n`);
+    
+    // Initialize WebSocket server
+    initializeWebSocket(server);
+    
+    // Setup console log cleanup every 5 minutes
+    setupConsoleLogCleanup();
+  });
+
+  return server;
+}
+
+// Start the server
+startServer().catch(error => {
+  console.error('💥 Failed to start server:', error);
+  process.exit(1);
 });
 
 /**
@@ -1160,15 +1208,16 @@ function setupConsoleLogCleanup() {
   }, cleanupInterval);
 }
 
-// WebSocket Terminal Server
-const wss = new WebSocket.Server({ 
-  server,
-  path: '/terminal'
-});
-
+// WebSocket Terminal Server initialization
 const terminals = new Map();
 
-wss.on('connection', (ws, req) => {
+function initializeWebSocket(server) {
+  const wss = new WebSocket.Server({ 
+    server,
+    path: '/terminal'
+  });
+
+  wss.on('connection', (ws, req) => {
   console.log('🔌 Terminal WebSocket connection established');
   
   const terminalId = uuidv4();
@@ -1245,4 +1294,5 @@ wss.on('connection', (ws, req) => {
       terminals.delete(terminalId);
     }
   });
-});
+  });
+}

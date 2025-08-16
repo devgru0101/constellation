@@ -1,0 +1,801 @@
+[
+  {
+    "id": "debug-test",
+    "name": "undefined",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T05:05:01.144Z",
+    "updatedAt": "2025-08-04T05:05:01.129Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/debug-test",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.418Z",
+      "originalPath": "/home/ssitzer/constellation-projects/debug-test",
+      "fileCount": 1
+    }
+  },
+  {
+    "id": "debug-test2",
+    "name": "undefined",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T05:05:06.686Z",
+    "updatedAt": "2025-08-04T05:06:52.571Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/debug-test2",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md",
+        "package.json"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.420Z",
+      "originalPath": "/home/ssitzer/constellation-projects/debug-test2",
+      "fileCount": 2
+    }
+  },
+  {
+    "id": "direct-claude-test",
+    "name": "Direct Claude Test",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-03T23:37:29.058Z",
+    "updatedAt": "2025-08-03T23:37:29.047Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/direct-claude-test",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.422Z",
+      "originalPath": "/home/ssitzer/constellation-projects/direct-claude-test",
+      "fileCount": 1
+    }
+  },
+  {
+    "id": "fault-test-project",
+    "name": "Fault Tolerance Test",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-03T23:44:31.580Z",
+    "updatedAt": "2025-08-03T23:44:43.149Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/fault-test-project",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md",
+        "volume-test-1754264682959.txt"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.424Z",
+      "originalPath": "/home/ssitzer/constellation-projects/fault-test-project",
+      "fileCount": 2
+    }
+  },
+  {
+    "id": "force-rebuild-test-complete",
+    "name": "undefined",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T05:11:29.978Z",
+    "updatedAt": "2025-08-04T05:14:05.068Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/force-rebuild-test-complete",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md",
+        "hello.ts",
+        "package-lock.json",
+        "package.json"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.426Z",
+      "originalPath": "/home/ssitzer/constellation-projects/force-rebuild-test-complete",
+      "fileCount": 4
+    }
+  },
+  {
+    "id": "project-1754263346222-u3geya23kub",
+    "name": "test-encore-app",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-03T23:22:26.246Z",
+    "updatedAt": "2025-08-03T23:22:26.235Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/project-1754263346222-u3geya23kub",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.429Z",
+      "originalPath": "/home/ssitzer/constellation-projects/project-1754263346222-u3geya23kub",
+      "fileCount": 1
+    }
+  },
+  {
+    "id": "project-1754266070081-o3wi0u6y6ng",
+    "name": "test project",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T00:07:50.549Z",
+    "updatedAt": "2025-08-04T00:07:50.542Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/project-1754266070081-o3wi0u6y6ng",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.434Z",
+      "originalPath": "/home/ssitzer/constellation-projects/project-1754266070081-o3wi0u6y6ng",
+      "fileCount": 1
+    }
+  },
+  {
+    "id": "project-1754266077065-5oeln9gu6pn",
+    "name": "test project",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T00:07:57.071Z",
+    "updatedAt": "2025-08-04T00:07:57.058Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/project-1754266077065-5oeln9gu6pn",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.437Z",
+      "originalPath": "/home/ssitzer/constellation-projects/project-1754266077065-5oeln9gu6pn",
+      "fileCount": 1
+    }
+  },
+  {
+    "id": "project-1754266078760-xmap6fi7vvc",
+    "name": "test project",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T00:07:58.678Z",
+    "updatedAt": "2025-08-04T00:07:58.668Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/project-1754266078760-xmap6fi7vvc",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.439Z",
+      "originalPath": "/home/ssitzer/constellation-projects/project-1754266078760-xmap6fi7vvc",
+      "fileCount": 1
+    }
+  },
+  {
+    "id": "project-1754266079654-0fs1lh3qsgkk",
+    "name": "test project",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T00:07:59.527Z",
+    "updatedAt": "2025-08-04T00:07:59.525Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/project-1754266079654-0fs1lh3qsgkk",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.440Z",
+      "originalPath": "/home/ssitzer/constellation-projects/project-1754266079654-0fs1lh3qsgkk",
+      "fileCount": 1
+    }
+  },
+  {
+    "id": "project-1754266080407-lskv64ku8ts",
+    "name": "test project",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T00:08:00.225Z",
+    "updatedAt": "2025-08-04T00:08:00.221Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/project-1754266080407-lskv64ku8ts",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.441Z",
+      "originalPath": "/home/ssitzer/constellation-projects/project-1754266080407-lskv64ku8ts",
+      "fileCount": 1
+    }
+  },
+  {
+    "id": "project-1754266081113-kxo52u4ntjq",
+    "name": "test project",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T00:08:00.904Z",
+    "updatedAt": "2025-08-04T00:08:00.888Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/project-1754266081113-kxo52u4ntjq",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.443Z",
+      "originalPath": "/home/ssitzer/constellation-projects/project-1754266081113-kxo52u4ntjq",
+      "fileCount": 1
+    }
+  },
+  {
+    "id": "project-1754266082007-mqetnsd26ip",
+    "name": "test project",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T00:08:01.755Z",
+    "updatedAt": "2025-08-04T00:08:01.755Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/project-1754266082007-mqetnsd26ip",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.444Z",
+      "originalPath": "/home/ssitzer/constellation-projects/project-1754266082007-mqetnsd26ip",
+      "fileCount": 1
+    }
+  },
+  {
+    "id": "project-1754266082800-zk2fo8vtbhs",
+    "name": "test project",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T00:08:02.513Z",
+    "updatedAt": "2025-08-04T00:08:02.498Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/project-1754266082800-zk2fo8vtbhs",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.447Z",
+      "originalPath": "/home/ssitzer/constellation-projects/project-1754266082800-zk2fo8vtbhs",
+      "fileCount": 1
+    }
+  },
+  {
+    "id": "project-1754266518260-cc5g0rsrshs",
+    "name": "test project",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T00:15:18.329Z",
+    "updatedAt": "2025-08-04T00:15:18.315Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/project-1754266518260-cc5g0rsrshs",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.449Z",
+      "originalPath": "/home/ssitzer/constellation-projects/project-1754266518260-cc5g0rsrshs",
+      "fileCount": 1
+    }
+  },
+  {
+    "id": "project-1754267037685-ddxqd4qc0lj",
+    "name": "Test Project",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T00:23:57.226Z",
+    "updatedAt": "2025-08-04T00:23:57.215Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/project-1754267037685-ddxqd4qc0lj",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.451Z",
+      "originalPath": "/home/ssitzer/constellation-projects/project-1754267037685-ddxqd4qc0lj",
+      "fileCount": 1
+    }
+  },
+  {
+    "id": "project-1754268790478-5rajjl7s6li",
+    "name": "Test Application",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T04:56:00.025Z",
+    "updatedAt": "2025-08-04T04:36:29.587Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/project-1754268790478-5rajjl7s6li",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md",
+        "encore.app",
+        "encore.service.ts",
+        "hello.ts",
+        "ping.ts",
+        "hello.txt",
+        "index.js",
+        "package-lock.json",
+        "package.json",
+        "start-encore.js",
+        "tsconfig.json"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.453Z",
+      "originalPath": "/home/ssitzer/constellation-projects/project-1754268790478-5rajjl7s6li",
+      "fileCount": 11
+    }
+  },
+  {
+    "id": "project-1754286271190-tnceavemov",
+    "name": "File Converter",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T05:44:30.744Z",
+    "updatedAt": "2025-08-04T06:08:02.196Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/project-1754286271190-tnceavemov",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "ARCHITECTURE.md",
+        "Dockerfile",
+        "README.md",
+        "WORKSPACE_README.md",
+        "db.ts",
+        "docker-compose.yml",
+        "encore.app",
+        "index.html",
+        "package.json",
+        "postcss.config.js",
+        "App.tsx",
+        "ConversionHistory.tsx",
+        "ConversionStatus.tsx",
+        "FileUpload.tsx",
+        "Button.tsx",
+        "Card.tsx",
+        "index.css",
+        "index.tsx",
+        "Dashboard.tsx",
+        "Login.tsx",
+        "auth.ts",
+        "api.ts",
+        "tailwind.config.js",
+        "tsconfig.json",
+        "tsconfig.node.json",
+        "vite.config.ts",
+        "1_create_tables.down.sql",
+        "1_create_tables.up.sql",
+        "nginx.conf",
+        "package-lock.json",
+        "package.json",
+        "server.log",
+        "auth.ts",
+        "auth.test.ts",
+        "conversion.ts",
+        "conversion.test.ts",
+        "upload.ts",
+        "setup.sh",
+        "test-preview.html",
+        "tsconfig.json"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.456Z",
+      "originalPath": "/home/ssitzer/constellation-projects/project-1754286271190-tnceavemov",
+      "fileCount": 40
+    }
+  },
+  {
+    "id": "test-docker-fix-1754266869",
+    "name": "test-docker-fix-1754266869",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-15T20:33:03.457Z",
+    "updatedAt": "2025-08-04T00:14:35.539Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/test-docker-fix-1754266869",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.457Z",
+      "originalPath": "/home/ssitzer/constellation-projects/test-docker-fix-1754266869",
+      "fileCount": 0
+    }
+  },
+  {
+    "id": "test-fix",
+    "name": "test-fix",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-15T20:33:03.457Z",
+    "updatedAt": "2025-08-04T00:22:13.117Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/test-fix",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.457Z",
+      "originalPath": "/home/ssitzer/constellation-projects/test-fix",
+      "fileCount": 0
+    }
+  },
+  {
+    "id": "test-rebuild-1754278811296",
+    "name": "Force Rebuild Test",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T03:40:11.340Z",
+    "updatedAt": "2025-08-04T03:40:11.326Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/test-rebuild-1754278811296",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.458Z",
+      "originalPath": "/home/ssitzer/constellation-projects/test-rebuild-1754278811296",
+      "fileCount": 1
+    }
+  },
+  {
+    "id": "test-rebuild-1754279275689",
+    "name": "Force Rebuild Test",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-04T04:21:41.483Z",
+    "updatedAt": "2025-08-04T04:12:58.145Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/test-rebuild-1754279275689",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md",
+        "encore.app",
+        "hello.ts",
+        "package-lock.json",
+        "package.json",
+        "start-encore.js",
+        "tsconfig.json"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.461Z",
+      "originalPath": "/home/ssitzer/constellation-projects/test-rebuild-1754279275689",
+      "fileCount": 7
+    }
+  },
+  {
+    "id": "test-spaces",
+    "name": "test-spaces",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-15T20:33:03.462Z",
+    "updatedAt": "2025-08-04T00:22:37.955Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/test-spaces",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.462Z",
+      "originalPath": "/home/ssitzer/constellation-projects/test-spaces",
+      "fileCount": 0
+    }
+  },
+  {
+    "id": "volume-fix-test",
+    "name": "Volume Fix Test",
+    "description": "Migrated encore-solidjs project",
+    "type": "encore-solidjs",
+    "status": "ready",
+    "createdAt": "2025-08-03T23:21:51.088Z",
+    "updatedAt": "2025-08-03T23:22:02.721Z",
+    "workspacePath": "/home/ssitzer/constellation-projects/volume-fix-test",
+    "knowledgeBase": {
+      "requirements": [],
+      "businessRules": [],
+      "techStack": [
+        "Encore.ts",
+        "SolidJS",
+        "TypeScript",
+        "PostgreSQL"
+      ],
+      "apis": []
+    },
+    "containerConfig": null,
+    "metadata": {
+      "originalFiles": [
+        "WORKSPACE_README.md",
+        "volume-test-1754263322561.txt"
+      ],
+      "migrated": true,
+      "migrationDate": "2025-08-15T20:33:03.464Z",
+      "originalPath": "/home/ssitzer/constellation-projects/volume-fix-test",
+      "fileCount": 2
+    }
+  }
+]

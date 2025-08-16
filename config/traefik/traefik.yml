@@ -1,0 +1,81 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+api:
+  dashboard: true
+  insecure: false
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entrypoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: constellation-network
+  
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: your_email@domain.com
+      storage: /ssl/acme.json
+      httpChallenge:
+        entryPoint: web
+
+# Middleware
+http:
+  middlewares:
+    auth:
+      basicAuth:
+        users:
+          - "admin:$2y$10$..." # Generate with htpasswd
+    
+    secure-headers:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - OPTIONS
+          - PUT
+          - POST
+          - DELETE
+        accessControlAllowOriginList:
+          - "https://constellation.local"
+          - "https://api.constellation.local"
+        accessControlMaxAge: 100
+        addVaryHeader: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        frameOptions: "SAMEORIGIN"
+        sslRedirect: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+
+    rate-limit:
+      rateLimit:
+        burst: 100
+        average: 50
+        period: 1m
+
+# Logging
+log:
+  level: INFO
+  filePath: "/var/log/traefik.log"
+
+accessLog:
+  filePath: "/var/log/access.log"
+  bufferingSize: 100

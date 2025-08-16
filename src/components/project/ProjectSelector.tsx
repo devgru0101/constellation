@@ -18,11 +18,44 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
   const state = useSnapshot(appStore)
   const [isOpen, setIsOpen] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true) // Start with loading=true
   const [projects, setProjects] = useState<any[]>([])
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Load projects when dropdown opens
+  // Load projects when component mounts and when dropdown opens
+  useEffect(() => {
+    // First check if app store already has projects
+    if (state.projects && state.projects.length > 0) {
+      console.log(`📂 ProjectSelector: Using ${state.projects.length} projects from app store`);
+      setProjects(state.projects.map(p => ({
+        id: p.id,
+        name: p.name,
+        type: p.type,
+        status: p.status,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt
+      })));
+      setLoading(false); // Stop loading when we have data from app store
+    } else if (projects.length === 0 && !loading) {
+      // Load projects if we don't have any and not already loading
+      console.log('📂 ProjectSelector: Loading projects on mount...');
+      loadProjects();
+    }
+  }, [state.projects]);
+
+  // Initial load on component mount
+  useEffect(() => {
+    // Only load if we don't have projects in app store
+    if (!state.projects || state.projects.length === 0) {
+      console.log('📂 ProjectSelector: Component mounted, loading projects...');
+      loadProjects();
+    } else {
+      // We already have projects from app store, stop loading
+      setLoading(false);
+    }
+  }, []); // Run only once on mount
+
+  // Also load projects when dropdown opens if we still don't have any
   useEffect(() => {
     if (isOpen && projects.length === 0) {
       loadProjects();
@@ -32,7 +65,14 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
   const loadProjects = async () => {
     setLoading(true);
     try {
+      console.log('📂 ProjectSelector: Loading projects...');
       const allProjects = await projectWorkspaceManager.getAllProjects();
+      console.log(`📂 ProjectSelector: Retrieved ${allProjects.length} projects from workspace manager`);
+      
+      if (allProjects.length === 0) {
+        console.warn('📂 ProjectSelector: No projects returned from workspace manager');
+      }
+      
       const formattedProjects = allProjects.map(project => ({
         id: project.id,
         name: project.name,
@@ -45,6 +85,18 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
       
       // Update app store
       appStore.projects = formattedProjects;
+      console.log(`📂 ProjectSelector: Updated app store with ${formattedProjects.length} projects`);
+      
+      // Check if we need to set a current project
+      if (!state.currentProject && formattedProjects.length > 0) {
+        console.log('📂 ProjectSelector: No current project set, checking workspace manager...');
+        const currentProject = projectWorkspaceManager.getCurrentProject();
+        if (currentProject) {
+          console.log(`📂 ProjectSelector: Found current project in workspace manager: ${currentProject.name}`);
+        } else {
+          console.log('📂 ProjectSelector: No current project in workspace manager either');
+        }
+      }
       
       // Trigger file tree refresh to reflect current project state
       const refreshEvent = new CustomEvent('refresh-file-tree', {
@@ -56,8 +108,9 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
       });
       window.dispatchEvent(refreshEvent);
       
+      console.log(`✅ ProjectSelector: Successfully loaded ${formattedProjects.length} projects`);
     } catch (error) {
-      console.error('Failed to load projects:', error);
+      console.error('❌ ProjectSelector: Failed to load projects:', error);
     } finally {
       setLoading(false);
     }
@@ -153,7 +206,15 @@ export const ProjectSelector: React.FC<ProjectSelectorProps> = ({
     }
   }
 
-  const currentProjectName = state.currentProject?.name || 'No Project'
+  // Debug current state
+  console.log('🔍 ProjectSelector render:', {
+    currentProject: state.currentProject?.name,
+    hasStateProjects: state.projects?.length || 0,
+    hasLocalProjects: projects.length,
+    loading
+  });
+
+  const currentProjectName = state.currentProject?.name || (loading ? 'Loading...' : hasProjects ? 'Select Project' : 'Offline')
   const hasProjects = projects.length > 0
 
   return (
