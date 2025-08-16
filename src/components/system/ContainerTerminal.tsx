@@ -8,7 +8,7 @@ import '@xterm/xterm/css/xterm.css'
 import { claudeCodeAPI } from '@/services/claude-code-api'
 import { loggers } from '@/services/logging-system'
 import { API_CONFIG } from '@/config/api'
-import { AlertCircle, Terminal, Loader2, Play, Stop } from 'lucide-react'
+import { Terminal, Loader2, Play } from 'lucide-react'
 
 export const ContainerTerminal: React.FC = () => {
   const state = useSnapshot(appStore)
@@ -39,7 +39,6 @@ export const ContainerTerminal: React.FC = () => {
         background: '#1a1b26',
         foreground: '#c0caf5',
         cursor: '#c0caf5',
-        selection: '#364a82',
         black: '#15161e',
         red: '#f7768e',
         green: '#9ece6a',
@@ -224,8 +223,8 @@ export const ContainerTerminal: React.FC = () => {
       if (state.currentProject.knowledgeBase) {
         const contextMessage = `Project: ${state.currentProject.name}
 Type: ${state.currentProject.type}
-Requirements: ${state.currentProject.knowledgeBase.requirements.join(', ')}
-Tech Stack: ${state.currentProject.knowledgeBase.techStack.join(', ')}`
+Requirements: ${state.currentProject.knowledgeBase.requirements?.join(', ') || 'None'}
+Tech Stack: ${state.currentProject.knowledgeBase.techStack?.join(', ') || 'None'}`
 
         setTimeout(() => {
           wsRef.current?.send(JSON.stringify({

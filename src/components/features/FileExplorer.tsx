@@ -31,7 +31,7 @@ interface FileNode {
 
 export const FileExplorer: React.FC = () => {
   const state = useSnapshot(appStore)
-  const { addTab } = useAppStore()
+  const { openTab } = useAppStore()
   const [fileTree, setFileTree] = useState<FileNode[]>([])
   const [loading, setLoading] = useState(false)
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set())
@@ -153,15 +153,8 @@ export const FileExplorer: React.FC = () => {
         const files = await claudeCodeAPI.syncFiles(state.currentProject!.id)
         const content = files[file.path] || ''
         
-        // Add tab to editor
-        addTab({
-          id: `file-${file.path}`,
-          file: file.path,
-          content,
-          language: getLanguageFromPath(file.path),
-          isActive: true,
-          isDirty: false
-        })
+        // Open file in editor
+        openTab(file.path, content, getLanguageFromPath(file.path))
         
         console.log('📁 FileExplorer: File opened in editor:', file.path)
       } catch (error) {
