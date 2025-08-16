@@ -305,6 +305,13 @@ class ClaudeCodeAPI {
             ports: containerConfig.ports || [3000, 4000], // Default for Encore + Frontend
             environment: {
               NODE_ENV: 'development',
+              // Share host authentication with container
+              ANTHROPIC_API_KEY: containerConfig.environment?.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY || '',
+              CLAUDE_CODE_CLI_INSTALLED: 'true',
+              CLAUDE_CODE_SESSION_ACTIVE: 'true',
+              // Pass project context to container
+              PROJECT_ID: projectId,
+              PROJECT_PATH: workspace.path,
               ...containerConfig.environment
             },
             volumes: [
@@ -342,11 +349,35 @@ class ClaudeCodeAPI {
   }
 
   /**
-   * Pre-install Encore.ts and common dependencies in container
+   * Pre-install Encore.ts, Claude Code CLI, and common dependencies in container
    */
   private async preInstallDependencies(projectId: string): Promise<void> {
     try {
       loggers.container('pre_install_dependencies_started', { projectId }, projectId);
+
+      // Install Claude Code CLI first (global installation)
+      loggers.container('installing_claude_code_cli', { projectId }, projectId);
+      const claudeInstallResult = await this.executeCommand(
+        projectId, 
+        'npm install -g @anthropic-ai/claude-code',
+        false
+      );
+
+      if (claudeInstallResult.exitCode === 0) {
+        loggers.container('claude_cli_installed', { projectId }, projectId);
+        
+        // Initialize Claude Code session with project context
+        await this.executeCommand(
+          projectId,
+          'claude-code --auth-check',
+          false
+        );
+      } else {
+        loggers.error('claude_cli_install_failed', new Error('Claude Code CLI installation failed'), {
+          projectId,
+          output: claudeInstallResult.output
+        }, projectId);
+      }
 
       // Initialize package.json
       await this.executeCommand(projectId, 'npm init -y', false);

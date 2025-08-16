@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { useSnapshot } from 'valtio'
 import { appStore } from '@/stores/app-store'
 import { Terminal, Bug, FileText, Activity, X } from 'lucide-react'
+import { ContainerTerminal } from '../system/ContainerTerminal'
 
 type BottomTab = 'terminal' | 'problems' | 'output' | 'debug'
 
@@ -23,7 +24,7 @@ export const BottomPanel: React.FC = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'terminal':
-        return <TerminalContent />
+        return <ContainerTerminal />
       case 'problems':
         return <ProblemsContent />
       case 'output':
@@ -31,7 +32,7 @@ export const BottomPanel: React.FC = () => {
       case 'debug':
         return <DebugContent />
       default:
-        return <TerminalContent />
+        return <ContainerTerminal />
     }
   }
 
@@ -81,35 +82,6 @@ export const BottomPanel: React.FC = () => {
   )
 }
 
-const TerminalContent: React.FC = () => {
-  return (
-    <div className="terminal-content p-4 font-mono text-sm bg-constellation-bg-primary">
-      <div className="terminal-line flex gap-2 mb-1">
-        <span className="text-constellation-accent-green">$</span>
-        <span className="text-constellation-text-primary">npm run dev</span>
-      </div>
-      <div className="text-constellation-text-secondary mb-2">
-        {`> constellation-ide@0.1.0 dev`}<br/>
-        {`> vite`}
-      </div>
-      <div className="text-constellation-text-secondary mb-2">
-        <span className="text-constellation-accent-blue">VITE v5.0.8</span> ready in 543 ms
-      </div>
-      <div className="text-constellation-text-secondary mb-2">
-        ➜  <span className="text-constellation-accent-green">Local:</span>   http://localhost:3000/<br/>
-        ➜  <span className="text-constellation-accent-blue">Network:</span> use --host to expose
-      </div>
-      <div className="terminal-line flex gap-2">
-        <span className="text-constellation-accent-green">$</span>
-        <input 
-          type="text"
-          className="terminal-input flex-1 bg-transparent border-none outline-none text-constellation-text-primary"
-          placeholder="Type a command..."
-        />
-      </div>
-    </div>
-  )
-}
 
 const ProblemsContent: React.FC = () => {
   const problems = [

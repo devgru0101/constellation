@@ -53,26 +53,31 @@ service.app.post('/projects', async (req, res) => {
       return res.status(503).json({ error: 'Database not connected' });
     }
     
-    const { name, description, type } = req.body;
+    const { name, description, type, knowledgeBase, templateId, requirements, businessRules, techStack } = req.body;
+    const projectId = `project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
     const project = {
-      id: `project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: projectId,
       name,
       description,
       type: type || 'general',
-      status: 'ready',
+      status: 'creating',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      workspacePath: `/home/ssitzer/constellation-projects/${project.id}`,
-      knowledgeBase: {
-        requirements: [],
-        businessRules: [],
-        techStack: [],
+      workspacePath: `/home/ssitzer/constellation-projects/${projectId}`,
+      knowledgeBase: knowledgeBase || {
+        requirements: requirements || [],
+        businessRules: businessRules || [],
+        techStack: techStack || [],
         apis: []
       },
+      templateId: templateId || null,
       containerConfig: null,
       metadata: {
         originalFiles: [],
-        fileCount: 0
+        fileCount: 0,
+        claudeCodeSession: null,
+        lastActivity: new Date().toISOString()
       }
     };
     
