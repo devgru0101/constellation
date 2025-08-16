@@ -165,12 +165,22 @@ make clean            # Clean Docker resources
 
 ### Service Architecture
 
-Each microservice runs in its own container with:
+Each microservice follows a consistent **BaseService pattern** with:
+- **Centralized configuration** via `src/config/api.ts`
+- **Environment detection** (Docker vs localhost development)
 - **Health checks** for automatic recovery
 - **Resource limits** for stability
 - **Structured logging** for observability
 - **Graceful shutdown** for reliability
 - **Non-root execution** for security
+
+#### Configuration Management
+
+The system uses intelligent configuration management:
+- **API_CONFIG**: Automatically detects Docker vs localhost environment
+- **Dynamic endpoints**: URLs adapt based on deployment context
+- **Legacy compatibility**: Maintains backward compatibility
+- **Type safety**: Full TypeScript support with proper environment types
 
 ## 🏢 Production Deployment
 
@@ -292,4 +302,3 @@ MIT License - see [LICENSE](./LICENSE) for details.
 ---
 
 **Built with ❤️ for enterprise-grade AI-powered development**
->>>>>>> 5c3b907 (feat: Implement enterprise-grade Docker microservices architecture)

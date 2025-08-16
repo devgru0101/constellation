@@ -1,7 +1,7 @@
 {
   "name": "constellation-ide",
-  "version": "0.1.0",
-  "description": "AI-Powered IDE Application built on CodeSandbox with Encore.ts integration",
+  "version": "1.1.0",
+  "description": "Enterprise-Grade AI-Powered Development Platform with Docker microservices architecture",
   "main": "src/index.tsx",
   "type": "module",
   "scripts": {
@@ -14,8 +14,7 @@
     "test:e2e": "playwright test",
     "test:coverage": "vitest --coverage",
     "clean": "rm -rf node_modules dist .vite package-lock.json && npm cache clean --force",
-    "fresh-install": "npm run clean && npm install",
-    "setup": "./quick-setup.sh"
+    "fresh-install": "npm run clean && npm install"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",
